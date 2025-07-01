@@ -23,7 +23,8 @@ classifiers = [
 ]
 dependencies = [
     "wyoming>=1.5.3",
-    "nemo_toolkit[all]>=2.3.1"
+    "onnx-asr[cpu,hub]>=0.6",
+    "soundfile>=0.12.1",
 ]
 
 [project.urls]
@@ -35,7 +36,7 @@ zip-safe  = true
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["wyoming_faster_whisper"]
+include = ["wyoming_nemo_asr"]
 exclude = ["tests"]
 
 [project.scripts]

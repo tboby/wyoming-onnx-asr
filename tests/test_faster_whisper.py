@@ -24,19 +24,15 @@ _TRANSCRIBE_TIMEOUT = 60
 
 
 @pytest.mark.asyncio
-async def test_faster_whisper() -> None:
+async def test_nemo_asr() -> None:
     proc = await asyncio.create_subprocess_exec(
         sys.executable,
         "-m",
-        "wyoming_faster_whisper",
+        "wyoming_nemo_asr",
         "--uri",
         "stdio://",
-        "--model",
-        "tiny-int8",
         "--data-dir",
         str(_LOCAL_DIR),
-        "--language",
-        "en",
         stdin=PIPE,
         stdout=PIPE,
     )
@@ -59,12 +55,12 @@ async def test_faster_whisper() -> None:
         asr = info.asr[0]
         assert len(asr.models) > 0, "Expected at least one model"
         assert any(
-            m.name == "tiny-int8" for m in asr.models
-        ), "Expected tiny-int8 model"
+            m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models
+        ), "Expected nemo-parakeet-tdt-0.6b-v2 model"
         break
 
     # We want to use the whisper model
-    await async_write_event(Transcribe(name="tiny-int8").event(), proc.stdin)
+    await async_write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event(), proc.stdin)
 
     # Test known WAV
     with wave.open(str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb") as example_wav:

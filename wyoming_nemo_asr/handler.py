@@ -6,8 +6,10 @@ import os
 import tempfile
 import wave
 from typing import Optional
+import numpy as np
 
-import nemo.collections.asr as nemo_asr
+import soundfile as sf
+import onnx_asr
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import AudioChunk, AudioStop
 from wyoming.event import Event
@@ -23,7 +25,7 @@ class NemoAsrEventHandler(AsyncEventHandler):
     def __init__(
         self,
         wyoming_info: Info,
-        model: nemo_asr.models.ASRModel,
+        model: any,
         model_lock: asyncio.Lock,
         *args,
         initial_prompt: Optional[str] = None,
@@ -61,12 +63,16 @@ class NemoAsrEventHandler(AsyncEventHandler):
 
             self._wav_file.close()
             self._wav_file = None
+            print(self._wav_path)
 
+            waveform, sample_rate = sf.read(self._wav_path, dtype="float32")
+            #Make mono by averaging the channels
+            waveform = np.mean(waveform, axis=1)
 
             async with self.model_lock:
-                segments = self.model.transcribe(self._wav_path)
+                segments = self.model.recognize(waveform)
 
-            text = " ".join(segment.text for segment in segments)
+            text = " ".join(segments)
             _LOGGER.info(text)
 
             await self.write_event(Transcript(text=text).event())
