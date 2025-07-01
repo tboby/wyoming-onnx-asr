@@ -52,9 +52,6 @@ line-length = 88
 [tool.isort]
 profile = "black"
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-
 [tool.mypy]
 check_untyped_defs = true
 disallow_untyped_defs = true
