@@ -5,14 +5,14 @@ import logging
 import platform
 import re
 from functools import partial
-from typing import Any
-
-import faster_whisper
+print("before nemo_asr")
+import nemo.collections.asr as nemo_asr
+print("after nemo_asr")
 from wyoming.info import AsrModel, AsrProgram, Attribution, Info
 from wyoming.server import AsyncServer
 
 from . import __version__
-from .handler import FasterWhisperEventHandler
+from .handler import NemoAsrEventHandler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,11 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 async def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model",
-        required=True,
-        help="Name of faster-whisper model to use (or auto)",
-    )
     parser.add_argument("--uri", required=True, help="unix:// or tcp://")
     parser.add_argument(
         "--data-dir",
@@ -42,35 +37,14 @@ async def main() -> None:
         help="Device to use for inference (default: cpu)",
     )
     parser.add_argument(
-        "--language",
-        help="Default language to set for transcription",
-    )
-    parser.add_argument(
         "--compute-type",
         default="default",
         help="Compute type (float16, int8, etc.)",
     )
     parser.add_argument(
-        "--beam-size",
-        type=int,
-        default=5,
-        help="Size of beam during decoding (0 for auto)",
-    )
-    parser.add_argument(
         "--initial-prompt",
         help="Optional text to provide as a prompt for the first window",
     )
-    parser.add_argument(
-        "--use-transformers",
-        action="store_true",
-        help="Use HuggingFace transformers library (requires transformers extras)",
-    )
-    parser.add_argument(
-        "--local-files-only",
-        action="store_true",
-        help="Don't check HuggingFace hub for updates every time",
-    )
-    #
     parser.add_argument("--debug", action="store_true", help="Log DEBUG messages")
     parser.add_argument(
         "--log-format", default=logging.BASIC_FORMAT, help="Format for log messages"
@@ -94,14 +68,6 @@ async def main() -> None:
 
     # Automatic configuration for ARM
     machine = platform.machine().lower()
-    is_arm = ("arm" in machine) or ("aarch" in machine)
-    if args.model == "auto":
-        args.model = "tiny-int8" if is_arm else "base-int8"
-        _LOGGER.debug("Model automatically selected: %s", args.model)
-
-    if args.beam_size <= 0:
-        args.beam_size = 1 if is_arm else 5
-        _LOGGER.debug("Beam size automatically selected: %s", args.beam_size)
 
     # Resolve model name
     model_name = args.model
@@ -119,11 +85,11 @@ async def main() -> None:
     wyoming_info = Info(
         asr=[
             AsrProgram(
-                name="faster-whisper",
-                description="Faster Whisper transcription with CTranslate2",
+                name="nemo-asr",
+                description="Nemo ASR transcription",
                 attribution=Attribution(
-                    name="Guillaume Klein",
-                    url="https://github.com/guillaumekln/faster-whisper/",
+                    name="Thomas Boby",
+                    url="https://github.com/tboby",
                 ),
                 installed=True,
                 version=__version__,
@@ -132,12 +98,12 @@ async def main() -> None:
                         name=model_name,
                         description=model_name,
                         attribution=Attribution(
-                            name="Systran",
-                            url="https://huggingface.co/Systran",
+                            name="NVIDIA",
+                            url="https://github.com/NVIDIA/NeMo",
                         ),
                         installed=True,
-                        languages=faster_whisper.tokenizer._LANGUAGE_CODES,  # pylint: disable=protected-access
-                        version=faster_whisper.__version__,
+                        languages=nemo_asr.asr.tokenizer._LANGUAGE_CODES,  # pylint: disable=protected-access
+                        version=nemo_asr.__version__,
                     )
                 ],
             )
@@ -146,61 +112,24 @@ async def main() -> None:
 
     # Load model
     _LOGGER.debug("Loading %s", args.model)
-    whisper_model: Any = None
 
-    if args.use_transformers:
-        # Use HuggingFace transformers
-        from .transformers_whisper import TransformersWhisperModel
-
-        whisper_model = TransformersWhisperModel(
-            args.model, args.download_dir, args.local_files_only
-        )
-    else:
-        # Use faster-whisper
-        whisper_model = faster_whisper.WhisperModel(
-            args.model,
-            download_root=args.download_dir,
-            device=args.device,
-            compute_type=args.compute_type,
-        )
+    whisper_model = nemo_asr.models.ASRModel.from_pretrained(model_name=args.model)
 
     server = AsyncServer.from_uri(args.uri)
     _LOGGER.info("Ready")
     model_lock = asyncio.Lock()
 
-    if args.use_transformers:
-        # Use HuggingFace transformers
-        from .transformers_whisper import (
-            TransformersWhisperEventHandler,
-            TransformersWhisperModel,
-        )
 
-        assert isinstance(whisper_model, TransformersWhisperModel)
-
-        # TODO: initial prompt
-        await server.run(
-            partial(
-                TransformersWhisperEventHandler,
-                wyoming_info,
-                args.language,
-                args.beam_size,
-                whisper_model,
-                model_lock,
-            )
+    assert isinstance(whisper_model, nemo_asr.models.ASRModel)
+    await server.run(
+        partial(
+            NemoAsrEventHandler,
+            wyoming_info,
+            whisper_model,
+            model_lock,
+            initial_prompt=args.initial_prompt,
         )
-    else:
-        # Use faster-whisper
-        assert isinstance(whisper_model, faster_whisper.WhisperModel)
-        await server.run(
-            partial(
-                FasterWhisperEventHandler,
-                wyoming_info,
-                args,
-                whisper_model,
-                model_lock,
-                initial_prompt=args.initial_prompt,
-            )
-        )
+    )
 
 
 # -----------------------------------------------------------------------------
