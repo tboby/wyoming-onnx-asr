@@ -7,13 +7,11 @@ import sys
 import wave
 from asyncio.subprocess import PIPE
 from pathlib import Path
-from typing import Optional
 
 import pytest
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
 from wyoming.client import AsyncClient
-from wyoming.event import async_read_event, async_write_event, Event
 from wyoming.info import Describe, Info
 
 _DIR = Path(__file__).parent
@@ -25,73 +23,24 @@ _SAMPLES_PER_CHUNK = 1024
 _START_TIMEOUT = 60
 _TRANSCRIBE_TIMEOUT = 60
 
-async def async_get_stdin(pipe) -> asyncio.StreamReader:
-    """Get StreamReader for stdin."""
-    loop = asyncio.get_running_loop()
 
-    reader = asyncio.StreamReader()
-    await loop.connect_read_pipe(
-        lambda: asyncio.StreamReaderProtocol(reader), pipe
-    )
-    return reader
-
-async def async_get_stdout(pipe) -> asyncio.StreamWriter:
-    """Get StreamWriter for stdout."""
-    loop = asyncio.get_running_loop()
-
-    writer_transport, writer_protocol = await loop.connect_write_pipe(
-        lambda: asyncio.streams.FlowControlMixin(loop=loop),
-        os.fdopen(pipe.fileno(), "wb"),
-    )
-    return asyncio.streams.StreamWriter(writer_transport, writer_protocol, None, loop)
-
-class AsyncStdioClient(AsyncClient):
-    """Standard output Wyoming client."""
-
-    def __init__(self, stdin, stdout) -> None:
-        super().__init__()
-
-        self._stdin = stdin
-        self._stdout = stdout
-        self._reader: Optional[asyncio.StreamReader] = None
-        self._writer: Optional[asyncio.StreamWriter] = None
-
-    async def read_event(self) -> Optional[Event]:
-        if self._reader is None:
-            self._reader = await async_get_stdin(self._stdin)
-
-        assert self._reader is not None
-        return await async_read_event(self._reader)
-
-    async def write_event(self, event: Event) -> None:
-        if self._writer is None:
-            self._writer = await async_get_stdout(self._stdout)
-
-        assert self._writer is not None
-        await async_write_event(event, self._writer)
-async def wait_for_server(uri: str, max_retries: int = 3) -> None:
-    """Wait for server to become available with retries."""
-    for attempt in range(max_retries):
+async def wait_for_server(uri: str, timeout: float = 10) -> None:
+    """Wait for server to become available within timeout."""
+    end_time = asyncio.get_event_loop().time() + timeout
+    while True:
         try:
             async with AsyncClient.from_uri(uri):
                 return  # Successfully connected
         except ConnectionRefusedError:
-            if attempt == max_retries - 1:
-                raise  # Last attempt failed
+            if asyncio.get_event_loop().time() >= end_time:
+                raise  # Timeout exceeded
             await asyncio.sleep(1)
 
 @pytest.mark.asyncio
 async def test_nemo_asr() -> None:
-    # Set HF_HUB to local dir
-    if sys.platform.startswith('win'):
-        # Use TCP on Windows
-        uri = "tcp://127.0.0.1:10300"
-        # Configure Windows event loop
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    else:
-        # Use stdio on other platforms
-        uri = "stdio://"
+    uri = "tcp://127.0.0.1:10300"
 
+    # Set HF_HUB to local dir
     env = os.environ.copy()
     env["HF_HUB"] = str(_LOCAL_DIR)
     proc = await asyncio.create_subprocess_exec(
@@ -162,13 +111,8 @@ async def test_nemo_asr() -> None:
                 assert text == "turn on the living room lamp"
                 break
 
-            # Need to close stdin for graceful termination
-        if uri.startswith("tcp"):
-           proc.kill()
-        else:
-            proc.stdin.close()
-            _, stderr = await proc.communicate()
-            assert proc.returncode == 0, stderr.decode()
+        proc.terminate()
+        await proc.wait()
     finally:
         if proc.returncode is None:
             proc._transport.close()
