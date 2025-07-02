@@ -1,6 +1,7 @@
 """Tests for wyoming-faster-whisper"""
 
 import asyncio
+import os
 import re
 import sys
 import wave
@@ -25,16 +26,18 @@ _TRANSCRIBE_TIMEOUT = 60
 
 @pytest.mark.asyncio
 async def test_nemo_asr() -> None:
+    # Set HF_HUB to local dir
+    env = os.environ.copy()
+    env["HF_HUB"] = str(_LOCAL_DIR)
     proc = await asyncio.create_subprocess_exec(
         sys.executable,
         "-m",
         "wyoming_nemo_asr",
         "--uri",
         "stdio://",
-        "--data-dir",
-        str(_LOCAL_DIR),
         stdin=PIPE,
         stdout=PIPE,
+        env=env
     )
     assert proc.stdin is not None
     assert proc.stdout is not None
