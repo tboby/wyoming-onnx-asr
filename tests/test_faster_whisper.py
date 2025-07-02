@@ -7,11 +7,13 @@ import sys
 import wave
 from asyncio.subprocess import PIPE
 from pathlib import Path
+from typing import Optional
 
 import pytest
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
-from wyoming.event import async_read_event, async_write_event
+from wyoming.client import AsyncClient
+from wyoming.event import async_read_event, async_write_event, Event
 from wyoming.info import Describe, Info
 
 _DIR = Path(__file__).parent
@@ -23,10 +25,63 @@ _SAMPLES_PER_CHUNK = 1024
 _START_TIMEOUT = 60
 _TRANSCRIBE_TIMEOUT = 60
 
+async def async_get_stdin(pipe) -> asyncio.StreamReader:
+    """Get StreamReader for stdin."""
+    loop = asyncio.get_running_loop()
+
+    reader = asyncio.StreamReader()
+    await loop.connect_read_pipe(
+        lambda: asyncio.StreamReaderProtocol(reader), pipe
+    )
+    return reader
+
+async def async_get_stdout(pipe) -> asyncio.StreamWriter:
+    """Get StreamWriter for stdout."""
+    loop = asyncio.get_running_loop()
+
+    writer_transport, writer_protocol = await loop.connect_write_pipe(
+        lambda: asyncio.streams.FlowControlMixin(loop=loop),
+        os.fdopen(pipe.fileno(), "wb"),
+    )
+    return asyncio.streams.StreamWriter(writer_transport, writer_protocol, None, loop)
+
+class AsyncStdioClient(AsyncClient):
+    """Standard output Wyoming client."""
+
+    def __init__(self, stdin, stdout) -> None:
+        super().__init__()
+
+        self._stdin = stdin
+        self._stdout = stdout
+        self._reader: Optional[asyncio.StreamReader] = None
+        self._writer: Optional[asyncio.StreamWriter] = None
+
+    async def read_event(self) -> Optional[Event]:
+        if self._reader is None:
+            self._reader = await async_get_stdin(self._stdin)
+
+        assert self._reader is not None
+        return await async_read_event(self._reader)
+
+    async def write_event(self, event: Event) -> None:
+        if self._writer is None:
+            self._writer = await async_get_stdout(self._stdout)
+
+        assert self._writer is not None
+        await async_write_event(event, self._writer)
 
 @pytest.mark.asyncio
 async def test_nemo_asr() -> None:
     # Set HF_HUB to local dir
+    if sys.platform.startswith('win'):
+        # Use TCP on Windows
+        uri = "tcp://127.0.0.1:10300"
+        # Configure Windows event loop
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    else:
+        # Use stdio on other platforms
+        uri = "stdio://"
+
     env = os.environ.copy()
     env["HF_HUB"] = str(_LOCAL_DIR)
     proc = await asyncio.create_subprocess_exec(
@@ -34,69 +89,72 @@ async def test_nemo_asr() -> None:
         "-m",
         "wyoming_nemo_asr",
         "--uri",
-        "stdio://",
+        uri,
         stdin=PIPE,
         stdout=PIPE,
         env=env
     )
-    assert proc.stdin is not None
-    assert proc.stdout is not None
+    try:
+        assert proc.stdin is not None
+        assert proc.stdout is not None
 
-    # Check info
-    await async_write_event(Describe().event(), proc.stdin)
-    while True:
-        event = await asyncio.wait_for(
-            async_read_event(proc.stdout), timeout=_START_TIMEOUT
-        )
-        assert event is not None
+        async with AsyncClient.from_uri(uri) as client:
+            # Check info
+            await client.write_event(Describe().event())
+            while True:
+                event = await asyncio.wait_for(
+                    client.read_event(), timeout=_START_TIMEOUT
+                )
+                assert event is not None
 
-        if not Info.is_type(event.type):
-            continue
+                if not Info.is_type(event.type):
+                    continue
 
-        info = Info.from_event(event)
-        assert len(info.asr) == 1, "Expected one asr service"
-        asr = info.asr[0]
-        assert len(asr.models) > 0, "Expected at least one model"
-        assert any(
-            m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models
-        ), "Expected nemo-parakeet-tdt-0.6b-v2 model"
-        break
+                info = Info.from_event(event)
+                assert len(info.asr) == 1, "Expected one asr service"
+                asr = info.asr[0]
+                assert len(asr.models) > 0, "Expected at least one model"
+                assert any(
+                    m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models
+                ), "Expected nemo-parakeet-tdt-0.6b-v2 model"
+                break
 
-    # We want to use the whisper model
-    await async_write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event(), proc.stdin)
+            # We want to use the whisper model
+            await client.write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event())
 
-    # Test known WAV
-    with wave.open(str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb") as example_wav:
-        await async_write_event(
-            AudioStart(
-                rate=example_wav.getframerate(),
-                width=example_wav.getsampwidth(),
-                channels=example_wav.getnchannels(),
-            ).event(),
-            proc.stdin,
-        )
-        for chunk in wav_to_chunks(example_wav, _SAMPLES_PER_CHUNK):
-            await async_write_event(chunk.event(), proc.stdin)
+            # Test known WAV
+            with wave.open(str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb") as example_wav:
+                await client.write_event(
+                    AudioStart(
+                        rate=example_wav.getframerate(),
+                        width=example_wav.getsampwidth(),
+                        channels=example_wav.getnchannels(),
+                    ).event(),
+                )
+                for chunk in wav_to_chunks(example_wav, _SAMPLES_PER_CHUNK):
+                    await client.write_event(chunk.event())
 
-        await async_write_event(AudioStop().event(), proc.stdin)
+                await client.write_event(AudioStop().event())
 
-    while True:
-        event = await asyncio.wait_for(
-            async_read_event(proc.stdout), timeout=_TRANSCRIBE_TIMEOUT
-        )
-        assert event is not None
+            while True:
+                event = await asyncio.wait_for(
+                    client.read_event(), timeout=_TRANSCRIBE_TIMEOUT
+                )
+                assert event is not None
 
-        if not Transcript.is_type(event.type):
-            continue
+                if not Transcript.is_type(event.type):
+                    continue
 
-        transcript = Transcript.from_event(event)
-        text = transcript.text.lower().strip()
-        text = re.sub(r"[^a-z ]", "", text)
-        assert text == "turn on the living room lamp"
-        break
+                transcript = Transcript.from_event(event)
+                text = transcript.text.lower().strip()
+                text = re.sub(r"[^a-z ]", "", text)
+                assert text == "turn on the living room lamp"
+                break
 
-    # Need to close stdin for graceful termination
-    proc.stdin.close()
-    _, stderr = await proc.communicate()
+            # Need to close stdin for graceful termination
+            proc.stdin.close()
+            _, stderr = await proc.communicate()
 
-    assert proc.returncode == 0, stderr.decode()
+            assert proc.returncode == 0, stderr.decode()
+    finally:
+        proc.terminate()
