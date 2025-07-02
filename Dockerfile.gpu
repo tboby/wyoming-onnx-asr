@@ -15,14 +15,15 @@ WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --no-dev --extra cpu -v
+    uv sync --locked --no-install-project --no-dev --extra gpu --extra gpu-preload -v
 COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra cpu -v
+    uv sync --locked --no-dev --extra gpu --extra gpu-preload -v
 
 
 # Then, use a final image without uv
 FROM python:3.12-slim-bookworm
+
 # It is important to use the image that matches the builder, as the path to the
 # Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
 # will fail.
@@ -35,5 +36,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 VOLUME /model_cache
 ENV HF_HOME="/model_cache"
-ENTRYPOINT ["python", "-m", "wyoming_nemo_asr"]
+ENTRYPOINT ["python", "-m", "wyoming_nemo_asr", "--device", "gpu" ]
 CMD [ "--uri", "tcp://localhost:10300" ]

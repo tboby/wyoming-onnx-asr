@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "wyoming>=1.5.3",
-    "onnx-asr[cpu,hub]>=0.6",
+    "onnx-asr[hub]>=0.6",
     "soundfile>=0.12.1",
 ]
 
@@ -66,3 +66,6 @@ dev = [
     "pytest>=7.4.4",
     "pytest-asyncio>=0.23.3",
 ]
+cpu = ["onnx-asr[cpu]>=0.6"]
+gpu = ["onnx-asr[gpu]>=0.6"]
+gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6"]

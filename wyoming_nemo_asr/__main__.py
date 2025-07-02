@@ -74,10 +74,16 @@ async def main() -> None:
         ],
     )
 
+    providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
+
     # Load model
     _LOGGER.debug("Loading %s", args.model)
+    if args.device == "gpu":
+        import onnxruntime
+        # Preload DLLs from NVIDIA site packages
+        onnxruntime.preload_dlls(directory="")
 
-    whisper_model = onnx_asr.load_model(model=args.model)
+    whisper_model = onnx_asr.load_model(model=args.model, providers=providers)
 
     server = AsyncServer.from_uri(args.uri)
     _LOGGER.info("Ready")
