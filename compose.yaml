@@ -1,0 +1,15 @@
+﻿services:
+  onnx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: [
+       "--model", "nemo-parakeet-tdt-0.6b-v2",
+#       "--model", "onnx-community/whisper-large-v3-turbo",
+      "--uri", "tcp://0.0.0.0:10300"
+    ]
+    volumes:
+      - ./local:/model_cache
+    restart: unless-stopped
+    ports:
+      - "10300:10300"

@@ -1,14 +1,14 @@
 [project]
-name = "wyoming-faster-whisper"
+name = "wyoming-nemo-asr"
 version = "2.5.0"
-description = "Wyoming Server for Faster Whisper"
+description = "Wyoming Server for Nemo ASR"
 readme = "README.md"
-requires-python = ">=3.8.1,<3.13"
+requires-python = ">=3.11.0,<3.13"
 license = {text = "MIT"}
 authors = [
     {name = "Michael Hansen", email = "mike@rhasspy.org"}
 ]
-keywords = ["rhasspy", "wyoming", "whisper", "stt"]
+keywords = ["rhasspy", "wyoming", "nemo", "asr", "stt"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -23,7 +23,8 @@ classifiers = [
 ]
 dependencies = [
     "wyoming>=1.5.3",
-    "faster-whisper>=1.1.0,<2"
+    "onnx-asr[hub]>=0.6",
+    "soundfile>=0.12.1",
 ]
 
 [project.urls]
@@ -35,11 +36,11 @@ zip-safe  = true
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["wyoming_faster_whisper"]
+include = ["wyoming_nemo_asr"]
 exclude = ["tests"]
 
 [project.scripts]
-wyoming-faster-whisper = "wyoming_faster_whisper.__main__:run"
+wyoming-nemo-asr = "wyoming_nemo_asr.__main__:run"
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
@@ -51,23 +52,20 @@ line-length = 88
 [tool.isort]
 profile = "black"
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-
 [tool.mypy]
 check_untyped_defs = true
 disallow_untyped_defs = true
 
 [project.optional-dependencies]
 dev = [
-    "black==22.12.0",
-    "flake8==6.0.0",
-    "isort==5.11.3",
-    "mypy==0.991",
-    "pylint==2.15.9",
-    "pytest==7.4.4",
-    "pytest-asyncio==0.23.3",
+    "black>=22.12.0",
+    "flake8>=6.0.0",
+    "isort>=5.11.3",
+    "mypy>=0.991",
+    "pylint>=2.15.9",
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
 ]
-transformers = [
-    "transformers[torch]==4.52.4",
-]
+cpu = ["onnx-asr[cpu]>=0.6"]
+gpu = ["onnx-asr[gpu]>=0.6"]
+gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6"]
