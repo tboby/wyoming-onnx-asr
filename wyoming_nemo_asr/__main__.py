@@ -22,23 +22,9 @@ async def main() -> None:
     parser.add_argument("--model", default="nemo-parakeet-tdt-0.6b-v2", help="Name of nemo-asr model to use (or auto)")
     parser.add_argument("--uri", required=True, help="unix:// or tcp://")
     parser.add_argument(
-        "--data-dir",
-        required=True,
-        help="Data directory to check for downloaded models",
-    )
-    parser.add_argument(
         "--device",
         default="cpu",
         help="Device to use for inference (default: cpu)",
-    )
-    parser.add_argument(
-        "--compute-type",
-        default="default",
-        help="Compute type (float16, int8, etc.)",
-    )
-    parser.add_argument(
-        "--initial-prompt",
-        help="Optional text to provide as a prompt for the first window",
     )
     parser.add_argument("--debug", action="store_true", help="Log DEBUG messages")
     parser.add_argument(
@@ -57,17 +43,8 @@ async def main() -> None:
     )
     _LOGGER.debug(args)
 
-    # Automatic configuration for ARM
-    machine = platform.machine().lower()
-
     # Resolve model name
     model_name = args.model
-    match = re.match(r"^(tiny|base|small|medium)[.-]int8$", args.model)
-    if match:
-        # Original models re-uploaded to huggingface
-        model_size = match.group(1)
-        model_name = f"{model_size}-int8"
-        args.model = f"rhasspy/faster-whisper-{model_name}"
 
     wyoming_info = Info(
         asr=[
@@ -113,8 +90,7 @@ async def main() -> None:
             NemoAsrEventHandler,
             wyoming_info,
             whisper_model,
-            model_lock,
-            initial_prompt=args.initial_prompt,
+            model_lock
         )
     )
 

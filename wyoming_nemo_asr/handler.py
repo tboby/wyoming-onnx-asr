@@ -38,7 +38,7 @@ class NemoAsrEventHandler(AsyncEventHandler):
         self.model_lock = model_lock
         self.initial_prompt = initial_prompt
         self._wav_dir = tempfile.TemporaryDirectory()
-        self._wav_path = os.path.join('.', "speech.wav")
+        self._wav_path = os.path.join(self._wav_dir.name, "speech.wav")
         self._wav_file: Optional[wave.Wave_write] = None
 
     async def handle_event(self, event: Event) -> bool:
@@ -68,7 +68,6 @@ class NemoAsrEventHandler(AsyncEventHandler):
             waveform, sample_rate = sf.read(self._wav_path, dtype="float32")
             #Make mono by averaging the channels
             waveform = np.mean(waveform, axis=1)
-            sf.write(self._wav_path+".test.wav", waveform, sample_rate)
 
             async with self.model_lock:
                 text = self.model.recognize(waveform, language="en", sample_rate=sample_rate)
