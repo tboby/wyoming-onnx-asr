@@ -69,6 +69,16 @@ class AsyncStdioClient(AsyncClient):
 
         assert self._writer is not None
         await async_write_event(event, self._writer)
+async def wait_for_server(uri: str, max_retries: int = 3) -> None:
+    """Wait for server to become available with retries."""
+    for attempt in range(max_retries):
+        try:
+            async with AsyncClient.from_uri(uri):
+                return  # Successfully connected
+        except ConnectionRefusedError:
+            if attempt == max_retries - 1:
+                raise  # Last attempt failed
+            await asyncio.sleep(1)
 
 @pytest.mark.asyncio
 async def test_nemo_asr() -> None:
@@ -98,6 +108,7 @@ async def test_nemo_asr() -> None:
         assert proc.stdin is not None
         assert proc.stdout is not None
 
+        await wait_for_server(uri)
         async with AsyncClient.from_uri(uri) as client:
             # Check info
             await client.write_event(Describe().event())
@@ -152,9 +163,12 @@ async def test_nemo_asr() -> None:
                 break
 
             # Need to close stdin for graceful termination
+        if uri.startswith("tcp"):
+           proc.kill()
+        else:
             proc.stdin.close()
             _, stderr = await proc.communicate()
-
             assert proc.returncode == 0, stderr.decode()
     finally:
-        proc.terminate()
+        if proc.returncode is None:
+            proc._transport.close()
