@@ -27,8 +27,9 @@ FROM python:3.12-slim-bookworm
 # Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
 # will fail.
 
+COPY --from=builder --chown=app:app /app/.venv /app/.venv
 # Copy the application from the builder
-COPY --from=builder --chown=app:app /app /app
+COPY --from=builder --chown=app:app /app/wyoming_nemo_asr /app/wyoming_nemo_asr
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
