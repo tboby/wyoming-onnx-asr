@@ -2,8 +2,6 @@
 import argparse
 import asyncio
 import logging
-import platform
-import re
 from functools import partial
 import onnx_asr
 

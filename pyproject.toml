@@ -46,6 +46,11 @@ wyoming-nemo-asr = "wyoming_onnx_asr.__main__:run"
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[dependency-groups]
+dev = [
+    "ruff>=0.12.2",
+]
+
 [tool.black]
 line-length = 88
 
@@ -65,6 +70,7 @@ dev = [
     "pylint>=2.15.9",
     "pytest>=7.4.4",
     "pytest-asyncio>=0.23.3",
+    "ruff>=0.12.2",
 ]
 cpu = ["onnx-asr[cpu]>=0.6"]
 gpu = ["onnx-asr[gpu]>=0.6"]

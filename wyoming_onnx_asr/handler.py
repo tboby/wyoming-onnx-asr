@@ -1,5 +1,4 @@
 """Event handler for clients of the server."""
-import argparse
 import asyncio
 import logging
 import os
@@ -9,7 +8,6 @@ from typing import Optional
 import numpy as np
 
 import soundfile as sf
-import onnx_asr
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import AudioChunk, AudioStop
 from wyoming.event import Event
@@ -81,7 +79,7 @@ class NemoAsrEventHandler(AsyncEventHandler):
             return False
 
         if Transcribe.is_type(event.type):
-            transcribe = Transcribe.from_event(event)
+            # transcribe = Transcribe.from_event(event)
             return True
 
         if Describe.is_type(event.type):
