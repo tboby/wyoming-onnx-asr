@@ -36,6 +36,7 @@ async def wait_for_server(uri: str, timeout: float = 10) -> None:
                 raise  # Timeout exceeded
             await asyncio.sleep(1)
 
+
 @pytest.mark.asyncio
 async def test_nemo_asr() -> None:
     uri = "tcp://127.0.0.1:10300"
@@ -51,7 +52,7 @@ async def test_nemo_asr() -> None:
         uri,
         stdin=PIPE,
         stdout=PIPE,
-        env=env
+        env=env,
     )
     try:
         assert proc.stdin is not None
@@ -74,16 +75,20 @@ async def test_nemo_asr() -> None:
                 assert len(info.asr) == 1, "Expected one asr service"
                 asr = info.asr[0]
                 assert len(asr.models) > 0, "Expected at least one model"
-                assert any(
-                    m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models
-                ), "Expected nemo-parakeet-tdt-0.6b-v2 model"
+                assert any(m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models), (
+                    "Expected nemo-parakeet-tdt-0.6b-v2 model"
+                )
                 break
 
             # We want to use the whisper model
-            await client.write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event())
+            await client.write_event(
+                Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event()
+            )
 
             # Test known WAV
-            with wave.open(str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb") as example_wav:
+            with wave.open(
+                str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb"
+            ) as example_wav:
                 await client.write_event(
                     AudioStart(
                         rate=example_wav.getframerate(),

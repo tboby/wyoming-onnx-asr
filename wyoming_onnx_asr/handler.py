@@ -1,4 +1,5 @@
 """Event handler for clients of the server."""
+
 import asyncio
 import logging
 import os
@@ -64,17 +65,18 @@ class NemoAsrEventHandler(AsyncEventHandler):
             print(self._wav_path)
 
             waveform, sample_rate = sf.read(self._wav_path, dtype="float32")
-            #Make mono by averaging the channels
+            # Make mono by averaging the channels
             if len(waveform.shape) > 1:
                 waveform = np.mean(waveform, axis=1)
             async with self.model_lock:
-                text = self.model.recognize(waveform, language="en", sample_rate=sample_rate)
+                text = self.model.recognize(
+                    waveform, language="en", sample_rate=sample_rate
+                )
 
             _LOGGER.info(text)
 
             await self.write_event(Transcript(text=text).event())
             _LOGGER.debug("Completed request")
-
 
             return False
 
