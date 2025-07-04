@@ -29,12 +29,12 @@ FROM python:3.12-slim-bookworm
 # will fail.
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
 # Copy the application from the builder
-COPY --from=builder --chown=app:app /app/wyoming_nemo_asr /app/wyoming_nemo_asr
+COPY --from=builder --chown=app:app /app/wyoming_onnx_asr /app/wyoming_onnx_asr
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
 VOLUME /data
 ENV HF_HUB_CACHE="/data"
-ENTRYPOINT ["python", "-m", "wyoming_nemo_asr", "--device", "gpu" ]
+ENTRYPOINT ["python", "-m", "wyoming_onnx_asr", "--device", "gpu" ]
 CMD [ "--uri", "tcp://localhost:10300" ]
