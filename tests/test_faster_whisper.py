@@ -46,7 +46,7 @@ async def test_nemo_asr() -> None:
     proc = await asyncio.create_subprocess_exec(
         sys.executable,
         "-m",
-        "wyoming_nemo_asr",
+        "wyoming_onnx_asr",
         "--uri",
         uri,
         stdin=PIPE,

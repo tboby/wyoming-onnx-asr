@@ -1,39 +1,39 @@
-# Wyoming Faster Whisper
+# Wyoming Onnx ASR
 
-[Wyoming protocol](https://github.com/rhasspy/wyoming) server for the [faster-whisper](https://github.com/guillaumekln/faster-whisper/) speech to text system.
+[Wyoming protocol](https://github.com/rhasspy/wyoming) server for the [onnx-asr](https://github.com/istupakov/onnx-asr/) speech to text system.
 
-## Home Assistant Add-on
+## Docker Image
 
-[![Show add-on](https://my.home-assistant.io/badges/supervisor_addon.svg)](https://my.home-assistant.io/redirect/supervisor_addon/?addon=core_whisper)
+```shell
+docker run -it -p 10300:10300 -v /path/to/local/data:/data ghcr.io/tboby/wyoming-onnx-asr
+```
 
-[Source](https://github.com/home-assistant/addons/tree/master/whisper)
+or for gpu
+
+```shell
+docker run -it -p 10300:10300 --gpus all -v /path/to/local/data:/data ghcr.io/tboby/wyoming-onnx-asr-gpu
+```
+
 
 ## Local Install
 
-Clone the repository and set up Python virtual environment:
+Install [uv](https://docs.astral.sh/uv/)
+
+Clone the repository and use `uv`:
 
 ``` sh
-git clone https://github.com/rhasspy/wyoming-faster-whisper.git
-cd wyoming-faster-whisper
-script/setup
+git clone https://github.com/tboby/wyoming-onnx-asr.git
+cd wyoming-onnx-asr
+uv sync
 ```
 
 Run a server anyone can connect to:
 
 ```sh
-script/run --model tiny-int8 --language en --uri 'tcp://0.0.0.0:10300' --data-dir /data --download-dir /data
+uv run --uri 'tcp://0.0.0.0:10300'
 ```
 
 The `--model` can also be a HuggingFace model like `Systran/faster-distil-whisper-small.en`
 
-## Docker Image
-
-``` sh
-docker run -it -p 10300:10300 -v /path/to/local/data:/data rhasspy/wyoming-whisper \
-    --model tiny-int8 --language en
-```
-
 **NOTE**: Models are downloaded temporarily to the `HF_HUB_CACHE` directory, which defaults to `~/.cache/huggingface/hub`.
 You may need to adjust this environment variable when using a read-only root filesystem (e.g., `HF_HUB_CACHE=/tmp`).
-
-[Source](https://github.com/rhasspy/wyoming-addons/tree/master/whisper)

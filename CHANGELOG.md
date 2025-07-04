@@ -1,39 +1,34 @@
 # Changelog
 
-## 2.5.0
+All notable changes to this project will be documented in this file.
 
-- Add support for HuggingFace transformers Whisper models (--use-transformers)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.4.0
+## [Unreleased]
 
-- Add "auto" for model and beam size (0) to select values based on CPU
+### Changed
+- Fork from wyoming-faster-whisper to create wyoming-onnx-asr
+- Switch from Faster Whisper to ONNX ASR backend
+- Update Python requirement to >=3.11.0
+- Replace faster-whisper dependency with onnx-asr[hub]>=0.6
+- Changed project name and metadata in pyproject.toml
+- Update repository URL to point to new GitHub location
+- Update Docker configurations to use ONNX ASR
 
-## 2.3.0
+### Added
+- New benchmark tool (WyomingASRBenchmark.py) for ASR performance testing
+- Simple ASR client tool (asr_client.py) for testing
+- GPU support with ONNX runtime
+- Optional dependencies for CPU and GPU configurations
+- Docker Compose configurations for both CPU and GPU setups
+- Sound file handling through soundfile>=0.12.1
 
-- Bump faster-whisper package to 1.1.0
-- Supports model `turbo` for faster processing
+### Removed
+- Home Assistant Add-on integration
+- Transformers support
+- Whisper-specific configurations and dependencies
 
-## 2.2.0
-
-- Bump faster-whisper package to 1.0.3
-
-## 2.1.0
-
-- Added `--initial-prompt` (see https://github.com/openai/whisper/discussions/963)
-
-## 2.0.0
-
-- Use faster-whisper PyPI package
-- `--model` can now be a HuggingFace model like `Systran/faster-distil-whisper-small.en`
-
-## 1.1.0
-
-- Fix enum use for Python 3.11+
-- Add tests and Github actions
-- Bump tokenizers to 0.15
-- Bump wyoming to 1.5.2
-
-## 1.0.0
-
-- Initial release
-
+### Fixed
+- Updated test suite for ONNX ASR compatibility
+- Modified Docker volume paths for better model caching

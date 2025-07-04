@@ -776,7 +776,7 @@ wheels = [
 ]
 
 [[package]]
-name = "wyoming-nemo-asr"
+name = "wyoming-onnx-asr"
 version = "2.5.0"
 source = { editable = "." }
 dependencies = [
