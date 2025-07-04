@@ -1,14 +1,14 @@
 [project]
-name = "wyoming-nemo-asr"
+name = "wyoming-onnx-asr"
 version = "2.5.0"
-description = "Wyoming Server for Nemo ASR"
+description = "Wyoming Server for ONNX ASR"
 readme = "README.md"
 requires-python = ">=3.11.0,<3.13"
 license = {text = "MIT"}
 authors = [
-    {name = "Michael Hansen", email = "mike@rhasspy.org"}
+    {name = "Thomas Boby"}
 ]
-keywords = ["rhasspy", "wyoming", "nemo", "asr", "stt"]
+keywords = ["rhasspy", "wyoming", "onnx", "asr", "stt", "nemo"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "http://github.com/rhasspy/wyoming-faster-whisper"
+Homepage = "http://github.com/tboby/wyoming-onnx-asr"
 
 [tool.setuptools]
 platforms = ["any"]
@@ -36,15 +36,20 @@ zip-safe  = true
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["wyoming_nemo_asr"]
+include = ["wyoming_onnx_asr"]
 exclude = ["tests"]
 
 [project.scripts]
-wyoming-nemo-asr = "wyoming_nemo_asr.__main__:run"
+wyoming-nemo-asr = "wyoming_onnx_asr.__main__:run"
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.2",
+]
 
 [tool.black]
 line-length = 88
@@ -65,6 +70,7 @@ dev = [
     "pylint>=2.15.9",
     "pytest>=7.4.4",
     "pytest-asyncio>=0.23.3",
+    "ruff>=0.12.2",
 ]
 cpu = ["onnx-asr[cpu]>=0.6"]
 gpu = ["onnx-asr[gpu]>=0.6"]

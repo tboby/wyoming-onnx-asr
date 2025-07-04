@@ -2,8 +2,6 @@
 import argparse
 import asyncio
 import logging
-import platform
-import re
 from functools import partial
 import onnx_asr
 
@@ -19,7 +17,11 @@ _LOGGER = logging.getLogger(__name__)
 async def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="nemo-parakeet-tdt-0.6b-v2", help="Name of nemo-asr model to use (or auto)")
+    parser.add_argument(
+        "--model",
+        default="nemo-parakeet-tdt-0.6b-v2",
+        help="Name of nemo-asr model to use (or auto)",
+    )
     parser.add_argument("--uri", required=True, help="unix:// or tcp://")
     parser.add_argument(
         "--device",
@@ -67,19 +69,20 @@ async def main() -> None:
                         ),
                         installed=True,
                         languages=["en"],
-                        version="0.1"
+                        version="0.1",
                     )
                 ],
             )
         ],
     )
 
-    providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
+    providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
 
     # Load model
     _LOGGER.debug("Loading %s", args.model)
     if args.device == "gpu":
         import onnxruntime
+
         # Preload DLLs from NVIDIA site packages
         onnxruntime.preload_dlls(directory="")
 
@@ -89,15 +92,9 @@ async def main() -> None:
     _LOGGER.info("Ready")
     model_lock = asyncio.Lock()
 
-
-    #assert isinstance(whisper_model, onnx_asr.ASRModel)
+    # assert isinstance(whisper_model, onnx_asr.ASRModel)
     await server.run(
-        partial(
-            NemoAsrEventHandler,
-            wyoming_info,
-            whisper_model,
-            model_lock
-        )
+        partial(NemoAsrEventHandler, wyoming_info, whisper_model, model_lock)
     )
 
 
