@@ -1,9 +1,9 @@
 [project]
 name = "wyoming-onnx-asr"
-version = "2.5.0"
+version = "0.1.0"
 description = "Wyoming Server for ONNX ASR"
 readme = "README.md"
-requires-python = ">=3.11.0,<3.13"
+requires-python = ">=3.10.0,<3.14"
 license = {text = "MIT"}
 authors = [
     {name = "Thomas Boby"}
@@ -56,6 +56,11 @@ line-length = 88
 
 [tool.isort]
 profile = "black"
+
+[tool.ruff.lint]
+extend-select = [
+    "I"
+]
 
 [tool.mypy]
 check_untyped_defs = true

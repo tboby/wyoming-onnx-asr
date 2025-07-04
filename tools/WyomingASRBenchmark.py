@@ -4,10 +4,11 @@ import json
 import time
 import wave
 from pathlib import Path
-from typing import Dict, List, Tuple
 from statistics import mean, stdev
-from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
+from typing import Dict, List, Tuple
+
 from wyoming.asr import Transcribe, Transcript
+from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
 from wyoming.client import AsyncClient
 from wyoming.info import Describe, Info
 

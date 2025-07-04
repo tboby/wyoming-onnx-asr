@@ -2,8 +2,9 @@ import argparse
 import asyncio
 import wave
 from pathlib import Path
-from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
+
 from wyoming.asr import Transcribe, Transcript
+from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
 from wyoming.client import AsyncClient
 
 SAMPLES_PER_CHUNK = 1024

@@ -37,3 +37,6 @@ The `--model` can also be a HuggingFace model like `Systran/faster-distil-whispe
 
 **NOTE**: Models are downloaded temporarily to the `HF_HUB_CACHE` directory, which defaults to `~/.cache/huggingface/hub`.
 You may need to adjust this environment variable when using a read-only root filesystem (e.g., `HF_HUB_CACHE=/tmp`).
+
+## Running tooling
+Format: `uv run -s script/format`
