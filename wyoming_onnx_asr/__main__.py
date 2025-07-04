@@ -3,8 +3,8 @@ import argparse
 import asyncio
 import logging
 from functools import partial
-import onnx_asr
 
+import onnx_asr
 from wyoming.info import AsrModel, AsrProgram, Attribution, Info
 from wyoming.server import AsyncServer
 

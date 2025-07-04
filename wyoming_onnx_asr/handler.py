@@ -6,9 +6,10 @@ import os
 import tempfile
 import wave
 from typing import Optional
-import numpy as np
 
+import numpy as np
 import soundfile as sf
+from onnx_asr.adapters import AsrAdapter
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import AudioChunk, AudioStop
 from wyoming.event import Event
@@ -24,7 +25,7 @@ class NemoAsrEventHandler(AsyncEventHandler):
     def __init__(
         self,
         wyoming_info: Info,
-        model: any,
+        model: AsrAdapter,
         model_lock: asyncio.Lock,
         *args,
         initial_prompt: Optional[str] = None,
