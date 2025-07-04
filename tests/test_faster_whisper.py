@@ -1,8 +1,7 @@
-"""Tests for wyoming-faster-whisper"""
+"""Tests for wyoming-onnx-asr"""
 
 import asyncio
 import os
-import re
 import sys
 import wave
 from asyncio.subprocess import PIPE
@@ -37,10 +36,11 @@ async def wait_for_server(uri: str, timeout: float = 10) -> None:
             await asyncio.sleep(1)
 
 
-@pytest.mark.asyncio
-async def test_nemo_asr() -> None:
+@pytest.fixture
+async def asr_server():
+    """Fixture to start and stop the ASR server."""
     uri = "tcp://127.0.0.1:10300"
-
+    
     # Set HF_HUB to local dir
     env = os.environ.copy()
     env["HF_HUB"] = str(_LOCAL_DIR)
@@ -54,70 +54,90 @@ async def test_nemo_asr() -> None:
         stdout=PIPE,
         env=env,
     )
+    
     try:
         assert proc.stdin is not None
         assert proc.stdout is not None
-
         await wait_for_server(uri)
-        async with AsyncClient.from_uri(uri) as client:
-            # Check info
-            await client.write_event(Describe().event())
-            while True:
-                event = await asyncio.wait_for(
-                    client.read_event(), timeout=_START_TIMEOUT
-                )
-                assert event is not None
-
-                if not Info.is_type(event.type):
-                    continue
-
-                info = Info.from_event(event)
-                assert len(info.asr) == 1, "Expected one asr service"
-                asr = info.asr[0]
-                assert len(asr.models) > 0, "Expected at least one model"
-                assert any(m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models), (
-                    "Expected nemo-parakeet-tdt-0.6b-v2 model"
-                )
-                break
-
-            # We want to use the whisper model
-            await client.write_event(
-                Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event()
-            )
-
-            # Test known WAV
-            with wave.open(
-                str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb"
-            ) as example_wav:
-                await client.write_event(
-                    AudioStart(
-                        rate=example_wav.getframerate(),
-                        width=example_wav.getsampwidth(),
-                        channels=example_wav.getnchannels(),
-                    ).event(),
-                )
-                for chunk in wav_to_chunks(example_wav, _SAMPLES_PER_CHUNK):
-                    await client.write_event(chunk.event())
-
-                await client.write_event(AudioStop().event())
-
-            while True:
-                event = await asyncio.wait_for(
-                    client.read_event(), timeout=_TRANSCRIBE_TIMEOUT
-                )
-                assert event is not None
-
-                if not Transcript.is_type(event.type):
-                    continue
-
-                transcript = Transcript.from_event(event)
-                text = transcript.text.lower().strip()
-                text = re.sub(r"[^a-z ]", "", text)
-                assert text == "turn on the living room lamp"
-                break
-
-        proc.terminate()
-        await proc.wait()
+        yield uri
     finally:
         if proc.returncode is None:
             proc._transport.close()
+
+
+@pytest.fixture
+async def asr_client(asr_server):
+    """Fixture to create and configure the ASR client."""
+    async with AsyncClient.from_uri(await asr_server.__anext__()) as client:
+        # Check info
+        await client.write_event(Describe().event())
+        while True:
+            event = await asyncio.wait_for(
+                client.read_event(), timeout=_START_TIMEOUT
+            )
+            assert event is not None
+
+            if not Info.is_type(event.type):
+                continue
+
+            info = Info.from_event(event)
+            assert len(info.asr) == 1, "Expected one asr service"
+            asr = info.asr[0]
+            assert len(asr.models) > 0, "Expected at least one model"
+            assert any(m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models)
+            break
+
+        # Configure the model
+        await client.write_event(
+            Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event()
+        )
+        yield client
+        # Cleanup happens automatically when the async with block exits
+
+
+async def transcribe_wav(client, wav_path):
+    """Helper function to transcribe a WAV file and return the text."""
+    with wave.open(str(wav_path), "rb") as wav_file:
+        await client.write_event(
+            AudioStart(
+                rate=wav_file.getframerate(),
+                width=wav_file.getsampwidth(),
+                channels=wav_file.getnchannels(),
+            ).event(),
+        )
+        for chunk in wav_to_chunks(wav_file, _SAMPLES_PER_CHUNK):
+            await client.write_event(chunk.event())
+        await client.write_event(AudioStop().event())
+
+    while True:
+        event = await asyncio.wait_for(
+            client.read_event(), timeout=_TRANSCRIBE_TIMEOUT
+        )
+        assert event is not None
+
+        if not Transcript.is_type(event.type):
+            continue
+
+        transcript = Transcript.from_event(event)
+        text = transcript.text
+        return text
+
+
+@pytest.mark.asyncio
+async def test_living_room_lamp(asr_client):
+    """Test transcription of the living room lamp command."""
+    async for client in asr_client:  # Use async for to get the client
+        wav_path = _DIR / "turn_on_the_living_room_lamp.wav"
+        text = await transcribe_wav(client, wav_path)
+        assert text == "Turn on the living room lamp."
+        break  # Only process the first (and only) yielded value
+
+
+@pytest.mark.asyncio
+async def test_kitchen_light(asr_client):
+    """Test transcription of the harvard command."""
+    async for client in asr_client:  # Use async for to get the client
+        wav_path = _DIR / "harvard.wav"
+        text = await transcribe_wav(client, wav_path)
+        assert text == "The stale smell of old beer lingers. It takes heat to bring out the odor. A cold dip restores health and zest. A salt pickle tastes fine with ham. Tacos al pasteur are my favorite. A zestful food is the hot cross bun."
+        break  # Only process the first (and only) yielded value
