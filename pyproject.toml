@@ -49,17 +49,9 @@ build-backend = "setuptools.build_meta"
 [dependency-groups]
 dev = [
     "ruff>=0.12.2",
-]
-
-[tool.black]
-line-length = 88
-
-[tool.isort]
-profile = "black"
-
-[tool.ruff.lint]
-extend-select = [
-    "I"
+    "mypy>=0.991",
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3"
 ]
 
 [tool.mypy]
@@ -67,16 +59,6 @@ check_untyped_defs = true
 disallow_untyped_defs = true
 
 [project.optional-dependencies]
-dev = [
-    "black>=22.12.0",
-    "flake8>=6.0.0",
-    "isort>=5.11.3",
-    "mypy>=0.991",
-    "pylint>=2.15.9",
-    "pytest>=7.4.4",
-    "pytest-asyncio>=0.23.3",
-    "ruff>=0.12.2",
-]
 cpu = ["onnx-asr[cpu]>=0.6"]
 gpu = ["onnx-asr[gpu]>=0.6"]
 gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6"]

@@ -1,0 +1,17 @@
+[tools]
+uv = "latest"
+
+[vars]
+format_dirs = "wyoming_onnx_asr tests"
+
+[tasks]
+test = "uv run --dev --extra cpu -m pytest ./tests"
+lint = "uvx ruff check {{vars.format_dirs}}"
+run = "uv run --extra cpu -m wyoming_onnx_asr"
+
+[tasks.format]
+description = "Format code using ruff"
+run = [
+    'uvx ruff check --select I --fix {{vars.format_dirs}}',
+    'uvx ruff format {{vars.format_dirs}}'
+]
