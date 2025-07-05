@@ -8,6 +8,8 @@ format_dirs = "wyoming_onnx_asr tests"
 test = "uv run --dev --extra cpu -m pytest ./tests"
 lint = "uvx ruff check {{vars.format_dirs}}"
 run = "uv run --extra cpu -m wyoming_onnx_asr"
+docker-gpu = "docker compose -f compose.gpu.yaml up --build"
+docker = "docker compose -f compose.yaml up --build"
 
 [tasks.format]
 description = "Format code using ruff"

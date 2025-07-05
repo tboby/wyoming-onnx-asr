@@ -61,4 +61,4 @@ disallow_untyped_defs = true
 [project.optional-dependencies]
 cpu = ["onnx-asr[cpu]>=0.6"]
 gpu = ["onnx-asr[gpu]>=0.6"]
-gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6"]
+gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6", "tensorrt>=9.0.0"]

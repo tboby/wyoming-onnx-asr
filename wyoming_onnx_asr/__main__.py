@@ -76,13 +76,12 @@ async def main() -> None:
         ],
     )
 
-    providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+    providers = [  "TensorrtExecutionProvider","CUDAExecutionProvider", "CPUExecutionProvider"]
 
     # Load model
     _LOGGER.debug("Loading %s", args.model)
     if args.device == "gpu":
         import onnxruntime
-
         # Preload DLLs from NVIDIA site packages
         onnxruntime.preload_dlls(directory="")
 
