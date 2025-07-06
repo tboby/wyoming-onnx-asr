@@ -10,11 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: setup
-        run: |
-          script/setup --dev
+      - name: setup mise
+        uses: jdx/mise-action@v2
+      - name: restore packages
+        run: mise exec uv -- uv sync --locked
       - name: test
         run: |
-          test $(script/run --version) = $(cat wyoming_faster_whisper/VERSION)
-          script/lint
-          script/test
+          mise run test
+          mise run lint
+        
