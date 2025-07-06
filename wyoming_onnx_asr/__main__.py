@@ -2,10 +2,10 @@
 import argparse
 import asyncio
 import logging
-import onnxruntime
 from functools import partial
 
 import onnx_asr
+import onnxruntime
 from wyoming.info import AsrModel, AsrProgram, Attribution, Info
 from wyoming.server import AsyncServer
 
@@ -78,20 +78,24 @@ async def main() -> None:
         ],
     )
 
-    providers = [ "CPUExecutionProvider"]
+    providers = ["CPUExecutionProvider"]
     session_options = onnxruntime.SessionOptions()
     # Load model
     _LOGGER.debug("Loading %s", args.model)
     if args.device == "gpu" or args.device == "gpu-trt":
         # Preload DLLs from NVIDIA site packages
         onnxruntime.preload_dlls(directory="")
-        #Prepend CUDA
+        # Prepend CUDA
         providers = ["CUDAExecutionProvider"] + providers
     if args.device == "gpu-trt":
         providers = ["TensorrtExecutionProvider"] + providers
-        session_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+        session_options.graph_optimization_level = (
+            onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+        )
 
-    whisper_model = onnx_asr.load_model(model=args.model, providers=providers, sess_options=session_options)
+    whisper_model = onnx_asr.load_model(
+        model=args.model, providers=providers, sess_options=session_options
+    )
 
     server = AsyncServer.from_uri(args.uri)
     _LOGGER.info("Ready")
