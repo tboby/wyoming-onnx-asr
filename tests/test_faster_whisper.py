@@ -67,7 +67,7 @@ async def asr_server():
     try:
         assert proc.stdin is not None
         assert proc.stdout is not None
-        await wait_for_server(uri)
+        await wait_for_server(uri, timeout=_START_TIMEOUT)
         assert proc.returncode is None
         yield uri
     finally:
