@@ -40,7 +40,7 @@ async def wait_for_server(uri: str, timeout: float = 10) -> None:
 async def asr_server():
     """Fixture to start and stop the ASR server."""
     uri = "tcp://127.0.0.1:10300"
-    
+
     # Set HF_HUB to local dir
     env = os.environ.copy()
     env["HF_HUB"] = str(_LOCAL_DIR)
@@ -54,7 +54,7 @@ async def asr_server():
         stdout=PIPE,
         env=env,
     )
-    
+
     try:
         assert proc.stdin is not None
         assert proc.stdout is not None
@@ -72,9 +72,7 @@ async def asr_client(asr_server):
         # Check info
         await client.write_event(Describe().event())
         while True:
-            event = await asyncio.wait_for(
-                client.read_event(), timeout=_START_TIMEOUT
-            )
+            event = await asyncio.wait_for(client.read_event(), timeout=_START_TIMEOUT)
             assert event is not None
 
             if not Info.is_type(event.type):
@@ -88,9 +86,7 @@ async def asr_client(asr_server):
             break
 
         # Configure the model
-        await client.write_event(
-            Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event()
-        )
+        await client.write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event())
         yield client
         # Cleanup happens automatically when the async with block exits
 
@@ -110,9 +106,7 @@ async def transcribe_wav(client, wav_path):
         await client.write_event(AudioStop().event())
 
     while True:
-        event = await asyncio.wait_for(
-            client.read_event(), timeout=_TRANSCRIBE_TIMEOUT
-        )
+        event = await asyncio.wait_for(client.read_event(), timeout=_TRANSCRIBE_TIMEOUT)
         assert event is not None
 
         if not Transcript.is_type(event.type):
@@ -139,5 +133,8 @@ async def test_kitchen_light(asr_client):
     async for client in asr_client:  # Use async for to get the client
         wav_path = _DIR / "harvard.wav"
         text = await transcribe_wav(client, wav_path)
-        assert text == "The stale smell of old beer lingers. It takes heat to bring out the odor. A cold dip restores health and zest. A salt pickle tastes fine with ham. Tacos al pasteur are my favorite. A zestful food is the hot cross bun."
+        assert (
+            text
+            == "The stale smell of old beer lingers. It takes heat to bring out the odor. A cold dip restores health and zest. A salt pickle tastes fine with ham. Tacos al pasteur are my favorite. A zestful food is the hot cross bun."
+        )
         break  # Only process the first (and only) yielded value

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- TensorRT support for GPU optimization - it's not very good though
+- Separate Docker image for TensorRT (gpu-tensorrt)
+- GitHub workflow for building and publishing TensorRT Docker image
+
+### Changed
+- Restructured Docker setup with separate Dockerfiles for GPU and TensorRT
+- Renamed Dockerfile.gpu to gpu.Dockerfile and created gpu-tensorrt.Dockerfile
+- Split GPU dependencies in pyproject.toml to separate regular GPU and TensorRT options
+
 ## [0.1.0] - 2025-07-04
 
 ### Changed

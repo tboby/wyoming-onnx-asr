@@ -15,10 +15,10 @@ WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --no-dev --extra gpu --extra gpu-preload -v
+    uv sync --locked --no-install-project --no-dev --extra gpu -v
 COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra gpu --extra gpu-preload -v
+    uv sync --locked --no-dev --extra gpu -v
 
 
 # Then, use a final image without uv
@@ -36,5 +36,6 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 VOLUME /data
 ENV HF_HUB_CACHE="/data"
-ENTRYPOINT ["python", "-m", "wyoming_onnx_asr", "--device", "gpu" ]
-CMD [ "--uri", "tcp://localhost:10300" ]
+
+ENTRYPOINT ["python", "-m", "wyoming_onnx_asr"]
+CMD [ "--uri", "tcp://localhost:10300",  "--device", "gpu" ]
