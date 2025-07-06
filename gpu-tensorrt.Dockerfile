@@ -41,5 +41,5 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/.venv/lib/python3.12/site-packages/ten
 ENV ORT_TENSORRT_ENGINE_CACHE_ENABLE=1
 ENV ORT_TENSORRT_CACHE_PATH=/cache/tensorrt
 
-ENTRYPOINT ["python", "-m", "wyoming_onnx_asr"]
-CMD [ "--uri", "tcp://localhost:10300",  "--device", "gpu" ]
+ENTRYPOINT ["python", "-m", "wyoming_onnx_asr", "--device", "gpu-trt"]
+CMD [ "--uri", "tcp://localhost:10300" ]
