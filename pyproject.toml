@@ -1,22 +1,19 @@
 [project]
 name = "wyoming-onnx-asr"
-version = "0.1.0"
+version = "0.2.0"
 description = "Wyoming Server for ONNX ASR"
 readme = "README.md"
 requires-python = ">=3.10.0,<3.14"
-license = {text = "MIT"}
+license = { text = "MIT" }
 authors = [
-    {name = "Thomas Boby"}
+    { name = "Thomas Boby" }
 ]
-keywords = ["rhasspy", "wyoming", "onnx", "asr", "stt", "nemo"]
+keywords = ["wyoming", "onnx", "asr", "stt", "nemo"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Text Processing :: Linguistic",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -32,7 +29,7 @@ Homepage = "http://github.com/tboby/wyoming-onnx-asr"
 
 [tool.setuptools]
 platforms = ["any"]
-zip-safe  = true
+zip-safe = true
 include-package-data = true
 
 [tool.setuptools.packages.find]
@@ -53,13 +50,6 @@ dev = [
     "pytest>=7.4.4",
     "pytest-asyncio>=0.23.3"
 ]
-[tool.uv.sources]
-tensorrt_libs = { index = "nvidia" }
-
-[[tool.uv.index]]
-name = "nvidia"
-url = "https://pypi.nvidia.com"
-explicit = true
 
 [tool.mypy]
 check_untyped_defs = true
@@ -67,5 +57,4 @@ disallow_untyped_defs = true
 
 [project.optional-dependencies]
 cpu = ["onnx-asr[cpu]>=0.6"]
-gpu = ["onnx-asr[gpu]>=0.6"]
-gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6", "tensorrt-libs"]
+gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.22.0", "tensorrt-cu12-libs==10.9.*"]
