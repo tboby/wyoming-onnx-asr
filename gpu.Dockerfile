@@ -37,5 +37,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 VOLUME /data
 ENV HF_HUB_CACHE="/data"
 
-ENTRYPOINT ["python", "-m", "wyoming_onnx_asr"]
-CMD [ "--uri", "tcp://localhost:10300",  "--device", "gpu" ]
+ENTRYPOINT ["python", "-m", "wyoming_onnx_asr",  "--device", "gpu"]
+CMD [ "--uri", "tcp://localhost:10300"," ]

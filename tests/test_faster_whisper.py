@@ -2,9 +2,11 @@
 
 import asyncio
 import os
+import socket
 import sys
 import wave
 from asyncio.subprocess import PIPE
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -23,6 +25,13 @@ _START_TIMEOUT = 60
 _TRANSCRIBE_TIMEOUT = 60
 
 
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(("", 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return s.getsockname()[1]
+
+
 async def wait_for_server(uri: str, timeout: float = 10) -> None:
     """Wait for server to become available within timeout."""
     end_time = asyncio.get_event_loop().time() + timeout
@@ -39,7 +48,7 @@ async def wait_for_server(uri: str, timeout: float = 10) -> None:
 @pytest.fixture
 async def asr_server():
     """Fixture to start and stop the ASR server."""
-    uri = "tcp://127.0.0.1:10300"
+    uri = f"tcp://127.0.0.1:{find_free_port()}"
 
     # Set HF_HUB to local dir
     env = os.environ.copy()
@@ -58,7 +67,8 @@ async def asr_server():
     try:
         assert proc.stdin is not None
         assert proc.stdout is not None
-        await wait_for_server(uri)
+        await wait_for_server(uri, timeout=_START_TIMEOUT)
+        assert proc.returncode is None
         yield uri
     finally:
         if proc.returncode is None:
@@ -82,6 +92,7 @@ async def asr_client(asr_server):
             assert len(info.asr) == 1, "Expected one asr service"
             asr = info.asr[0]
             assert len(asr.models) > 0, "Expected at least one model"
+            print(asr.models)
             assert any(m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models)
             break
 
