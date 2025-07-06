@@ -21,7 +21,7 @@ async def main() -> None:
     parser.add_argument(
         "--model",
         default="nemo-parakeet-tdt-0.6b-v2",
-        help="Name of nemo-asr model to use (or auto)",
+        help="Name of onnx-asr model to use",
     )
     parser.add_argument("--uri", required=True, help="unix:// or tcp://")
     parser.add_argument(
@@ -53,8 +53,8 @@ async def main() -> None:
     wyoming_info = Info(
         asr=[
             AsrProgram(
-                name="nemo-asr",
-                description="Nemo ASR transcription",
+                name="onnx-asr",
+                description="Onnx ASR transcription",
                 attribution=Attribution(
                     name="Thomas Boby",
                     url="https://github.com/tboby",
