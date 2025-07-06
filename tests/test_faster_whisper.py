@@ -2,12 +2,13 @@
 
 import asyncio
 import os
+import socket
 import sys
 import wave
 from asyncio.subprocess import PIPE
 from contextlib import closing
 from pathlib import Path
-import socket
+
 import pytest
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import AudioStart, AudioStop, wav_to_chunks
@@ -23,11 +24,13 @@ _SAMPLES_PER_CHUNK = 1024
 _START_TIMEOUT = 60
 _TRANSCRIBE_TIMEOUT = 60
 
+
 def find_free_port():
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('', 0))
+        s.bind(("", 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
+
 
 async def wait_for_server(uri: str, timeout: float = 10) -> None:
     """Wait for server to become available within timeout."""
