@@ -53,6 +53,13 @@ dev = [
     "pytest>=7.4.4",
     "pytest-asyncio>=0.23.3"
 ]
+[tool.uv.sources]
+tensorrt_libs = { index = "nvidia" }
+
+[[tool.uv.index]]
+name = "nvidia"
+url = "https://pypi.nvidia.com"
+explicit = true
 
 [tool.mypy]
 check_untyped_defs = true
@@ -61,4 +68,4 @@ disallow_untyped_defs = true
 [project.optional-dependencies]
 cpu = ["onnx-asr[cpu]>=0.6"]
 gpu = ["onnx-asr[gpu]>=0.6"]
-gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6", "tensorrt>=9.0.0"]
+gpu-preload = ["onnxruntime-gpu[cuda,cudnn]>=1.15.0", "onnx-asr[gpu]>=0.6", "tensorrt-libs"]

@@ -9,6 +9,7 @@
     ]
     volumes:
       - ./local:/data
+      - ./cache:/cache
     restart: unless-stopped
     ports:
       - "10300:10300"
