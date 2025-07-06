@@ -63,7 +63,6 @@ class NemoAsrEventHandler(AsyncEventHandler):
 
             self._wav_file.close()
             self._wav_file = None
-            print(self._wav_path)
 
             waveform, sample_rate = sf.read(self._wav_path, dtype="float32")
             # Make mono by averaging the channels
