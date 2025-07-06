@@ -2,7 +2,7 @@
   onnx:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: gpu.Dockerfile
     command: [
        "--model", "nemo-parakeet-tdt-0.6b-v2",
       "--uri", "tcp://0.0.0.0:10300",

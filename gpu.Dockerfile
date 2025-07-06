@@ -35,11 +35,7 @@ COPY --from=builder --chown=app:app /app/wyoming_onnx_asr /app/wyoming_onnx_asr
 ENV PATH="/app/.venv/bin:$PATH"
 
 VOLUME /data
-VOLUME /cache
 ENV HF_HUB_CACHE="/data"
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/.venv/lib/python3.12/site-packages/tensorrt_libs/
-ENV ORT_TENSORRT_ENGINE_CACHE_ENABLE=1
-ENV ORT_TENSORRT_CACHE_PATH=/cache/tensorrt
 
 ENTRYPOINT ["python", "-m", "wyoming_onnx_asr"]
 CMD [ "--uri", "tcp://localhost:10300",  "--device", "gpu" ]

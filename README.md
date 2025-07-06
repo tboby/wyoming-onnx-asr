@@ -14,6 +14,7 @@ or for gpu
 docker run -it -p 10300:10300 --gpus all -v /path/to/local/data:/data ghcr.io/tboby/wyoming-onnx-asr-gpu
 ```
 
+there is also gpu TensorRT support, but it's a huge image and doesn't seem to make much performance difference
 
 ## Local Install
 

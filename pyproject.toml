@@ -57,4 +57,5 @@ disallow_untyped_defs = true
 
 [project.optional-dependencies]
 cpu = ["onnx-asr[cpu]>=0.6"]
-gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.22.0", "tensorrt-cu12-libs==10.9.*"]
+gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.22.0"]
+gpu-trt = ["onnxruntime-gpu[cuda,cudnn]~=1.22.0", "tensorrt-cu12-libs==10.9.*"]

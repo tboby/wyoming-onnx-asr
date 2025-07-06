@@ -2,7 +2,7 @@
   onnx:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: gpu-tensorrt.Dockerfile
     command: [
        "--model", "nemo-parakeet-tdt-0.6b-v2",
 #             "--model", "onnx-community/whisper-large-v3-turbo",
