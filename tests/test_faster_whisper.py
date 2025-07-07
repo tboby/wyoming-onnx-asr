@@ -45,24 +45,33 @@ async def wait_for_server(uri: str, timeout: float = 10) -> None:
             await asyncio.sleep(1)
 
 
-@pytest.fixture
-async def asr_server():
+@pytest.fixture(params=[None, "int8"])
+async def asr_server(request):
     """Fixture to start and stop the ASR server."""
     uri = f"tcp://127.0.0.1:{find_free_port()}"
 
     # Set HF_HUB to local dir
     env = os.environ.copy()
     env["HF_HUB"] = str(_LOCAL_DIR)
-    proc = await asyncio.create_subprocess_exec(
+
+    command = [
         sys.executable,
         "-m",
         "wyoming_onnx_asr",
         "--uri",
         uri,
+    ]
+    quantization = request.param
+    if quantization:
+        command.extend(["--quantization", quantization])
+
+    proc = await asyncio.create_subprocess_exec(
+        *command,
         stdin=PIPE,
         stdout=PIPE,
         env=env,
     )
+    print(f"Started ASR server with command: {' '.join(command)}")
 
     try:
         assert proc.stdin is not None

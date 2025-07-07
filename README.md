@@ -14,7 +14,8 @@ or for gpu
 docker run -it -p 10300:10300 --gpus all -v /path/to/local/data:/data ghcr.io/tboby/wyoming-onnx-asr-gpu
 ```
 
-there is also gpu TensorRT support, but it's a huge image and doesn't seem to make much performance difference. You might want to mount int a cache folder if using it (`/cache`)
+There is also gpu TensorRT support, but it's a huge image and doesn't seem to make much performance difference.
+You might want to mount in a cache folder if using it (`/cache`).
 
 ## Local Install
 
@@ -38,6 +39,10 @@ The `--model` can also be a HuggingFace model but see [onnx-asr](https://github.
 
 **NOTE**: Models are downloaded temporarily to the `HF_HUB_CACHE` directory, which defaults to `~/.cache/huggingface/hub`.
 You may need to adjust this environment variable when using a read-only root filesystem (e.g., `HF_HUB_CACHE=/tmp`).
+
+## Configuration
+
+- Quantization: the parakeet model supports int8, but make sure to compare as performance may or may not improve.
 
 ## Running tooling
 Install [mise](https://mise.jdx.dev/) and use `mise run` to get a list of tasks to test, format, lint, run.

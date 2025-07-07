@@ -23,6 +23,9 @@ async def main() -> None:
         default="nemo-parakeet-tdt-0.6b-v2",
         help="Name of onnx-asr model to use",
     )
+    parser.add_argument(
+        "-q", "--quantization", help="Model quantization ('int8' for example)"
+    )
     parser.add_argument("--uri", required=True, help="unix:// or tcp://")
     parser.add_argument(
         "--device",
@@ -94,7 +97,10 @@ async def main() -> None:
         )
 
     whisper_model = onnx_asr.load_model(
-        model=args.model, providers=providers, sess_options=session_options
+        model=args.model,
+        providers=providers,
+        sess_options=session_options,
+        quantization=args.quantization,
     )
 
     server = AsyncServer.from_uri(args.uri)
