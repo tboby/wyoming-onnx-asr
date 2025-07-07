@@ -1,4 +1,4 @@
-"""Wyoming server for nemo-asr."""
+"""Wyoming server for onnx-asr."""
 
 from importlib.metadata import version
 
