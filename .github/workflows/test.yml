@@ -7,7 +7,11 @@ on:
 jobs:
   test_linux:
     name: "test on linux"
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v3
       - name: setup mise
