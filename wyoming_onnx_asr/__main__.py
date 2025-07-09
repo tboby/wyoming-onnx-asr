@@ -96,6 +96,7 @@ async def main() -> None:
             onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
         )
 
+    _LOGGER.info("Loading model %s, %s ...", args.model, args.quantization)
     whisper_model = onnx_asr.load_model(
         model=args.model,
         providers=providers,
