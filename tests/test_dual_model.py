@@ -1,4 +1,4 @@
-"""Tests for wyoming-onnx-asr"""
+"""Tests for dual-model scenarios in wyoming-onnx-asr"""
 
 import asyncio
 import os
@@ -46,8 +46,8 @@ async def wait_for_server(uri: str, timeout: float = 10) -> None:
 
 
 @pytest.fixture(params=[None, "int8"])
-async def asr_server(request):
-    """Fixture to start and stop the ASR server."""
+async def dual_model_server(request):
+    """Fixture to start and stop the ASR server with both English and multilingual models."""
     uri = f"tcp://127.0.0.1:{find_free_port()}"
 
     # Set HF_HUB to local dir
@@ -61,7 +61,9 @@ async def asr_server(request):
         "--uri",
         uri,
         "--model-en",
-        "nemo-parakeet-tdt-0.6b-v2",  # Use new dual-model flag
+        "nemo-parakeet-tdt-0.6b-v2",  # English model
+        "--model-multilingual",
+        "nemo-parakeet-tdt-0.6b-v2",  # Use same model for testing (in real scenario would be different)
     ]
     quantization = request.param
     if quantization:
@@ -73,7 +75,7 @@ async def asr_server(request):
         stdout=PIPE,
         env=env,
     )
-    print(f"Started ASR server with command: {' '.join(command)}")
+    print(f"Started dual-model ASR server with command: {' '.join(command)}")
 
     try:
         assert proc.stdin is not None
@@ -87,9 +89,9 @@ async def asr_server(request):
 
 
 @pytest.fixture
-async def asr_client(asr_server):
-    """Fixture to create and configure the ASR client."""
-    async with AsyncClient.from_uri(await asr_server.__anext__()) as client:
+async def dual_model_client(dual_model_server):
+    """Fixture to create and configure the dual-model ASR client."""
+    async with AsyncClient.from_uri(await dual_model_server.__anext__()) as client:
         # Check info
         await client.write_event(Describe().event())
         while True:
@@ -102,13 +104,16 @@ async def asr_client(asr_server):
             info = Info.from_event(event)
             assert len(info.asr) == 1, "Expected one asr service"
             asr = info.asr[0]
-            assert len(asr.models) > 0, "Expected at least one model"
-            print(asr.models)
-            assert any(m.name == "nemo-parakeet-tdt-0.6b-v2" for m in asr.models)
+            assert len(asr.models) == 2, (
+                "Expected two models (English and multilingual)"
+            )
+            print(f"Available models: {asr.models}")
+
+            # Verify both models are available
+            model_names = [m.name for m in asr.models]
+            assert "nemo-parakeet-tdt-0.6b-v2" in model_names
             break
 
-        # Configure the model
-        await client.write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event())
         yield client
         # Cleanup happens automatically when the async with block exits
 
@@ -140,23 +145,59 @@ async def transcribe_wav(client, wav_path):
 
 
 @pytest.mark.asyncio
-async def test_living_room_lamp(asr_client):
-    """Test transcription of the living room lamp command."""
-    async for client in asr_client:  # Use async for to get the client
+async def test_dual_model_english_default(dual_model_client):
+    """Test that English model is used by default."""
+    async for client in dual_model_client:
+        # Don't specify a model - should default to English
         wav_path = _DIR / "turn_on_the_living_room_lamp.wav"
         text = await transcribe_wav(client, wav_path)
         assert text == "Turn on the living room lamp."
-        break  # Only process the first (and only) yielded value
+        break
 
 
 @pytest.mark.asyncio
-async def test_kitchen_light(asr_client):
-    """Test transcription of the harvard command."""
-    async for client in asr_client:  # Use async for to get the client
+async def test_dual_model_explicit_english(dual_model_client):
+    """Test explicitly selecting English model."""
+    async for client in dual_model_client:
+        # Explicitly request English model
+        await client.write_event(
+            Transcribe(name="nemo-parakeet-tdt-0.6b-v2", language="en").event()
+        )
+
         wav_path = _DIR / "harvard.wav"
         text = await transcribe_wav(client, wav_path)
         assert (
             text
             == "The stale smell of old beer lingers. It takes heat to bring out the odor. A cold dip restores health and zest. A salt pickle tastes fine with ham. Tacos al pasteur are my favorite. A zestful food is the hot cross bun."
         )
-        break  # Only process the first (and only) yielded value
+        break
+
+
+@pytest.mark.asyncio
+async def test_dual_model_server_info(dual_model_client):
+    """Test that server info correctly reports both models."""
+    async for client in dual_model_client:
+        # Check info
+        await client.write_event(Describe().event())
+        while True:
+            event = await asyncio.wait_for(client.read_event(), timeout=_START_TIMEOUT)
+            assert event is not None
+
+            if not Info.is_type(event.type):
+                continue
+
+            info = Info.from_event(event)
+            assert len(info.asr) == 1, "Expected one asr service"
+            asr = info.asr[0]
+            assert len(asr.models) == 2, "Expected two models"
+
+            # Verify model details
+            model_names = [m.name for m in asr.models]
+            assert "nemo-parakeet-tdt-0.6b-v2" in model_names
+
+            # Check that we have both English and multilingual models
+            descriptions = [m.description for m in asr.models]
+            assert any("English model" in desc for desc in descriptions)
+            assert any("Multilingual model" in desc for desc in descriptions)
+            break
+        break
