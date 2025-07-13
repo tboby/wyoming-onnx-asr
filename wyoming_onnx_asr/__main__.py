@@ -20,12 +20,10 @@ async def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model-en",
-        help="English model name",
+        "--model-en", help="English model name", default="nemo-parakeet-tdt-0.6b-v2"
     )
     parser.add_argument(
-        "--model-multilingual",
-        help="Multilingual model name",
+        "--model-multilingual", help="Multilingual model name", default="whisper-base"
     )
     parser.add_argument(
         "-q", "--quantization", help="Model quantization ('int8' for example)"
@@ -176,9 +174,6 @@ async def main() -> None:
             )
             sys.exit(1)
 
-    # Select the model to use (prioritize English model)
-    primary_model = models.get("en") or models.get("multi")
-
     # Validate that at least one model was successfully loaded
     if not models:
         _LOGGER.error("Startup validation failed - no models were successfully loaded")
@@ -198,7 +193,6 @@ async def main() -> None:
     # Wrap a single shared asyncio.Lock() for all models (unchanged)
     model_lock = asyncio.Lock()
 
-    # assert isinstance(primary_model, onnx_asr.ASRModel)
     await server.run(partial(NemoAsrEventHandler, wyoming_info, models, model_lock))
 
 

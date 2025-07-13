@@ -27,12 +27,12 @@ async def get_available_models(uri: str) -> List[str]:
 
 
 async def transcribe_wav(
-    uri: str, wav_path: Path, model_name: str
+    uri: str, wav_path: Path, model_name: str, language: str
 ) -> Tuple[str, float]:
     start_time = time.time()
 
     async with AsyncClient.from_uri(uri) as client:
-        await client.write_event(Transcribe(name=model_name).event())
+        await client.write_event(Transcribe(name=model_name, language=language).event())
 
         with wave.open(str(wav_path), "rb") as wav_file:
             await client.write_event(
@@ -62,7 +62,7 @@ async def transcribe_wav(
 
 
 async def run_benchmark(
-    uri: str, wav_path: Path, models: List[str], iterations: int
+    uri: str, wav_path: Path, language: str, models: List[str], iterations: int
 ) -> Dict:
     results = {}
 
@@ -74,7 +74,12 @@ async def run_benchmark(
         for i in range(iterations):
             try:
                 print(f"  Iteration {i + 1}/{iterations}...", end="", flush=True)
-                text, elapsed = await transcribe_wav(uri, wav_path, model)
+                text, elapsed = await transcribe_wav(uri, wav_path, model, language=language)
+                print(
+                    f"\n  Transcription: {text[:100]}..."
+                    if len(text) > 100
+                    else f"\n  Transcription: {text}"
+                )
                 times.append(elapsed)
                 transcripts.append(text)
                 print(f" {elapsed:.2f}s")
@@ -107,6 +112,9 @@ async def main():
     parser.add_argument(
         "--models", nargs="+", help="Specific models to test (default: all available)"
     )
+    parser.add_argument(
+        "--language", default="en"
+    )
     parser.add_argument("--output", type=Path, help="Save results to JSON file")
 
     args = parser.parse_args()
@@ -127,7 +135,7 @@ async def main():
 
         # Run benchmark
         results = await run_benchmark(
-            args.uri, args.wav_file, args.models, args.iterations
+            args.uri, args.wav_file, args.language, args.models, args.iterations
         )
 
         # Print results

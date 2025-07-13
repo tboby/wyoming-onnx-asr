@@ -63,7 +63,7 @@ async def dual_model_server(request):
         "--model-en",
         "nemo-parakeet-tdt-0.6b-v2",  # English model
         "--model-multilingual",
-        "nemo-parakeet-tdt-0.6b-v2",  # Use same model for testing (in real scenario would be different)
+        "onnx-community/whisper-large-v3-turbo",  # Use same model for testing (in real scenario would be different)
     ]
     quantization = request.param
     if quantization:
@@ -160,9 +160,7 @@ async def test_dual_model_explicit_english(dual_model_client):
     """Test explicitly selecting English model."""
     async for client in dual_model_client:
         # Explicitly request English model
-        await client.write_event(
-            Transcribe(name="nemo-parakeet-tdt-0.6b-v2", language="en").event()
-        )
+        await client.write_event(Transcribe(language="en").event())
 
         wav_path = _DIR / "harvard.wav"
         text = await transcribe_wav(client, wav_path)
@@ -200,4 +198,31 @@ async def test_dual_model_server_info(dual_model_client):
             assert any("English model" in desc for desc in descriptions)
             assert any("Multilingual model" in desc for desc in descriptions)
             break
+        break
+
+
+@pytest.mark.asyncio
+async def test_dual_model_switching(dual_model_client):
+    """Test switching between models in a single client session."""
+    async for client in dual_model_client:
+        # First use the English model
+        await client.write_event(Transcribe(language="en").event())
+        wav_path = _DIR / "turn_on_the_living_room_lamp.wav"
+        text_en = await transcribe_wav(client, wav_path)
+        assert text_en == "Turn on the living room lamp."
+
+        # Then switch to the multilingual model
+        await client.write_event(Transcribe(language="nl").event())
+        wav_path = _DIR / "harvard.wav"
+        text_multi = await transcribe_wav(client, wav_path)
+        assert (
+            text_multi
+            == "The stale smell of old beer lingers. It takes heat to bring out the odor. A cold dip restores health and zest. A salt pickle tastes fine with ham. Tacos al pasteur are my favorite. A zestful food is the hot cross bun."
+        )
+
+        # Switch back to English
+        await client.write_event(Transcribe(language="en").event())
+        wav_path = _DIR / "turn_on_the_living_room_lamp.wav"
+        text_en_again = await transcribe_wav(client, wav_path)
+        assert text_en_again == "Turn on the living room lamp."
         break

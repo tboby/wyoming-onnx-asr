@@ -110,7 +110,7 @@ class NemoAsrEventHandler(AsyncEventHandler):
                     )
                     return False
 
-            _LOGGER.info(text)
+            _LOGGER.info(f"{lang}:{text}")
 
             await self.write_event(Transcript(text=text).event())
             _LOGGER.debug("Completed request")
