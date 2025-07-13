@@ -63,7 +63,7 @@ async def dual_model_server(request):
         "--model-en",
         "nemo-parakeet-tdt-0.6b-v2",  # English model
         "--model-multilingual",
-        "onnx-community/whisper-large-v3-turbo",  # Use same model for testing (in real scenario would be different)
+        "whisper-base",  # Use same model for testing (in real scenario would be different)
     ]
     quantization = request.param
     if quantization:
