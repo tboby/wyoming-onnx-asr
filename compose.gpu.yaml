@@ -4,7 +4,7 @@
       context: .
       dockerfile: gpu.Dockerfile
     command: [
-       "--model", "nemo-parakeet-tdt-0.6b-v2",
+       "--model-en", "nemo-parakeet-tdt-0.6b-v2",
       "--uri", "tcp://0.0.0.0:10300"
     ]
     volumes:
