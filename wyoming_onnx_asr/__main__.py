@@ -71,6 +71,7 @@ async def main() -> None:
             AsrModel(
                 name=eng_model_name,
                 description=f"English model: {eng_model_name}",
+                attribution=Attribution(),
                 installed=True,
                 languages=["en"],
                 version="0.1",
@@ -83,6 +84,7 @@ async def main() -> None:
             AsrModel(
                 name=multi_model_name,
                 description=f"Multilingual model: {multi_model_name}",
+                attribution=Attribution(),
                 installed=True,
                 languages=["*"],
                 version="0.1",
