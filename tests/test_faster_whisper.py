@@ -60,6 +60,8 @@ async def asr_server(request):
         "wyoming_onnx_asr",
         "--uri",
         uri,
+        "--model-en",
+        "nemo-parakeet-tdt-0.6b-v2",  # Use new dual-model flag
     ]
     quantization = request.param
     if quantization:

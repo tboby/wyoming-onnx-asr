@@ -25,7 +25,7 @@ class NemoAsrEventHandler(AsyncEventHandler):
     def __init__(
         self,
         wyoming_info: Info,
-        model: AsrAdapter,
+        models: dict[str, AsrAdapter],
         model_lock: asyncio.Lock,
         *args,
         initial_prompt: Optional[str] = None,
@@ -34,9 +34,10 @@ class NemoAsrEventHandler(AsyncEventHandler):
         super().__init__(*args, **kwargs)
 
         self.wyoming_info_event = wyoming_info.event()
-        self.model = model
+        self.models = models
         self.model_lock = model_lock
         self.initial_prompt = initial_prompt
+        self.request_language: Optional[str] = None
         self._wav_dir = tempfile.TemporaryDirectory()
         self._wav_path = os.path.join(self._wav_dir.name, "speech.wav")
         self._wav_file: Optional[wave.Wave_write] = None
@@ -68,20 +69,73 @@ class NemoAsrEventHandler(AsyncEventHandler):
             # Make mono by averaging the channels
             if len(waveform.shape) > 1:
                 waveform = np.mean(waveform, axis=1)
-            async with self.model_lock:
-                text = self.model.recognize(
-                    waveform, language="en", sample_rate=sample_rate
-                )
 
-            _LOGGER.info(text)
+            # Decide on language and model
+            lang = self.request_language or "en"
+            model = None
+
+            _LOGGER.info(f"Language requested: {lang}")
+            _LOGGER.info(f"Available models: {list(self.models.keys())}")
+
+            if lang == "en" and "en" in self.models:
+                model = self.models["en"]
+                _LOGGER.info(f"Selected English model for language '{lang}'")
+            elif "multi" in self.models:
+                model = self.models["multi"]
+                _LOGGER.info(f"Selected multilingual model for language '{lang}'")
+            elif "en" in self.models:
+                model = self.models["en"]
+                _LOGGER.info(f"Fallback to English model for language '{lang}'")
+
+            if model is None:
+                if self.request_language:
+                    _LOGGER.error(
+                        "Language '%s' requested but no suitable model is available",
+                        self.request_language,
+                    )
+                    _LOGGER.error("Available models: %s", list(self.models.keys()))
+                    error_msg = f"Language '{self.request_language}' is not supported. Available models: {list(self.models.keys())}"
+                else:
+                    _LOGGER.error("No ASR model loaded - server misconfiguration")
+                    error_msg = "No ASR model is available for transcription"
+
+                # Send error response instead of raising exception
+                await self.write_event(Transcript(text=f"ERROR: {error_msg}").event())
+                return False
+
+            async with self.model_lock:
+                try:
+                    _LOGGER.info(
+                        f"Starting transcription with model for language '{lang}'"
+                    )
+                    text = model.recognize(
+                        waveform, language=lang, sample_rate=sample_rate
+                    )
+                    _LOGGER.info(
+                        f"Transcription completed successfully for language '{lang}'"
+                    )
+                except Exception as e:
+                    _LOGGER.error("Model recognition failed: %s", str(e))
+                    error_msg = f"Transcription failed: {str(e)}"
+                    await self.write_event(
+                        Transcript(text=f"ERROR: {error_msg}").event()
+                    )
+                    return False
+
+            _LOGGER.info(f"{lang}:{text}")
 
             await self.write_event(Transcript(text=text).event())
             _LOGGER.debug("Completed request")
 
+            # Reset request language after transcription
+            self.request_language = None
+
             return False
 
         if Transcribe.is_type(event.type):
-            # transcribe = Transcribe.from_event(event)
+            transcribe = Transcribe.from_event(event)
+            # Extract language (may be None) and save to request_language
+            self.request_language = transcribe.language
             return True
 
         if Describe.is_type(event.type):
