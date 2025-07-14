@@ -74,12 +74,18 @@ class NemoAsrEventHandler(AsyncEventHandler):
             lang = self.request_language or "en"
             model = None
 
+            _LOGGER.info(f"Language requested: {lang}")
+            _LOGGER.info(f"Available models: {list(self.models.keys())}")
+
             if lang == "en" and "en" in self.models:
                 model = self.models["en"]
+                _LOGGER.info(f"Selected English model for language '{lang}'")
             elif "multi" in self.models:
                 model = self.models["multi"]
+                _LOGGER.info(f"Selected multilingual model for language '{lang}'")
             elif "en" in self.models:
                 model = self.models["en"]
+                _LOGGER.info(f"Fallback to English model for language '{lang}'")
 
             if model is None:
                 if self.request_language:
@@ -99,8 +105,14 @@ class NemoAsrEventHandler(AsyncEventHandler):
 
             async with self.model_lock:
                 try:
+                    _LOGGER.info(
+                        f"Starting transcription with model for language '{lang}'"
+                    )
                     text = model.recognize(
                         waveform, language=lang, sample_rate=sample_rate
+                    )
+                    _LOGGER.info(
+                        f"Transcription completed successfully for language '{lang}'"
                     )
                 except Exception as e:
                     _LOGGER.error("Model recognition failed: %s", str(e))

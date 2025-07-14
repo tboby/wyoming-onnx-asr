@@ -10,11 +10,11 @@ from wyoming.client import AsyncClient
 SAMPLES_PER_CHUNK = 1024
 
 
-async def transcribe_wav(uri: str, wav_path: Path) -> str:
+async def transcribe_wav(uri: str, wav_path: Path, language: str) -> str:
     # Connect to the Wyoming ASR service
     async with AsyncClient.from_uri(uri) as client:
         # Start transcription session
-        await client.write_event(Transcribe(name="nemo-parakeet-tdt-0.6b-v2").event())
+        await client.write_event(Transcribe(language=language).event())
 
         # Open and stream the WAV file
         with wave.open(str(wav_path), "rb") as wav_file:
@@ -55,6 +55,7 @@ async def main():
     parser.add_argument(
         "--host", default="tcp://localhost:10300", help="Wyoming ASR service host"
     )
+    parser.add_argument("--language", default="en", help="Wyoming ASR service language")
 
     args = parser.parse_args()
 
@@ -63,7 +64,7 @@ async def main():
         return 1
 
     try:
-        text = await transcribe_wav(args.host, args.wav_file)
+        text = await transcribe_wav(args.host, args.wav_file, args.language)
         print(f"Transcription: {text}")
         return 0
     except Exception as e:
