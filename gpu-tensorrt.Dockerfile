@@ -51,4 +51,4 @@ ENV ORT_TENSORRT_ENGINE_CACHE_ENABLE=1
 ENV ORT_TENSORRT_CACHE_PATH=/cache/tensorrt
 
 ENTRYPOINT ["python", "-m", "wyoming_onnx_asr", "--device", "gpu-trt"]
-CMD [ "--uri", "tcp://localhost:10300" ]
+CMD [ "--uri", "tcp://localhost:10300", "--model_en", "nemo-parakeet-tdt-0.6b-v2" ]

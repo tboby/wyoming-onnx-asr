@@ -19,12 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 async def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model-en", help="English model name", default="nemo-parakeet-tdt-0.6b-v2"
-    )
-    parser.add_argument(
-        "--model-multilingual", help="Multilingual model name", default="whisper-base"
-    )
+    parser.add_argument("--model-en", help="English model name")
+    parser.add_argument("--model-multilingual", help="Multilingual model name")
     parser.add_argument(
         "-q", "--quantization", help="Model quantization ('int8' for example)"
     )
