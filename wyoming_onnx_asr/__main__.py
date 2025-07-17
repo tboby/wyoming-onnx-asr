@@ -212,7 +212,6 @@ _LANGUAGE_CODES = (
     "da",
     "de",
     "el",
-    "en",
     "es",
     "et",
     "eu",
@@ -295,6 +294,7 @@ _LANGUAGE_CODES = (
     "zh",
     "yue",
 )
+
 
 def run() -> None:
     asyncio.run(main())
