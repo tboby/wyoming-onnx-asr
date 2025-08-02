@@ -110,7 +110,7 @@ async def main() -> None:
     )
 
     # Build common ORT provider list + session options once (reuse existing logic)
-    providers = ["CPUExecutionProvider"]
+    providers = ["OpenVINOExecutionProvider","CPUExecutionProvider"]
     session_options = onnxruntime.SessionOptions()
 
     if args.device == "gpu" or args.device == "gpu-trt":

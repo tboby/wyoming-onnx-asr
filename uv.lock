@@ -159,7 +159,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -608,6 +608,30 @@ cudnn = [
 ]
 
 [[package]]
+name = "onnxruntime-openvino"
+version = "1.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "coloredlogs" },
+    { name = "flatbuffers" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "packaging" },
+    { name = "protobuf" },
+    { name = "sympy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/90/75dc9b2eaa3e2751bc8265cd3a8569c811bd9619c8b2bf1283d68e572f8c/onnxruntime_openvino-1.22.0-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:c89fa637a3f0515aa9f9b249f050e4361c654bf0b1ddb95b65a9b723c5dcda74", size = 63706001, upload-time = "2025-05-26T10:24:28.75Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/26/43774a42ce75c0e7a63f20e4df4df5f21696c84f6c5676eb74101bb84b05/onnxruntime_openvino-1.22.0-cp310-cp310-win_amd64.whl", hash = "sha256:83f5156ebe595d9c8f33cae034c98f5a033c8638446e0dce45fa1359d532ac76", size = 12218556, upload-time = "2025-05-26T10:24:32.821Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/f8/e58072535f96696cf18e8bff083ec2f6a7a2c8810f052727d2de6aff75fd/onnxruntime_openvino-1.22.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:693c4e63fb6ca8c10ebd4f67a87701f3f0628eb81f40960bdf7ae5c61b6aefdb", size = 63708673, upload-time = "2025-05-26T10:24:37.569Z" },
+    { url = "https://files.pythonhosted.org/packages/a4/01/f08a012d0acb3f4c4f978f04a44ecae45303e6a9c4a5a3dc7e1bcf9deeaf/onnxruntime_openvino-1.22.0-cp311-cp311-win_amd64.whl", hash = "sha256:bf3953915244ed54c03ece5542d93e45526a6dc776cd8919c179759aae0d9e76", size = 12220371, upload-time = "2025-05-26T10:24:41.436Z" },
+    { url = "https://files.pythonhosted.org/packages/58/79/7ca125aaa651ed4084f755d2f2e10f949a7eaad6d01aaf9a9f8b9a153248/onnxruntime_openvino-1.22.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:000811fd42b027663cd15fcbbde049871164f7353ed28cab0219a1c10eef8e6d", size = 63708175, upload-time = "2025-05-26T10:24:46.739Z" },
+    { url = "https://files.pythonhosted.org/packages/38/73/2212a23aa2ac28e037ce844b86e6f367baddc05c83bce35992fa7be05c85/onnxruntime_openvino-1.22.0-cp312-cp312-win_amd64.whl", hash = "sha256:092446f82e52ab90d117120d321c7a726e58d77aab36d8796c29b7aa918ddb33", size = 12222493, upload-time = "2025-05-26T10:24:50.244Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/f3/8e4332aad38b22402b7671fedea60e930639b7f265a99f61f31dd8f8fce7/onnxruntime_openvino-1.22.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:a9879cfeb777a74b157383650aaf8762854a564f974ecdad55c7aa5962c7c534", size = 63707490, upload-time = "2025-05-26T10:24:54.779Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/0c/b7ac06f634403354225a5fc7a4b46cc4eb7fdd8a03dea3c77efd95e3c3dd/onnxruntime_openvino-1.22.0-cp313-cp313-win_amd64.whl", hash = "sha256:329ddda0093cb2702dc5774075d3f5520e7cb9b478a420ec7183ee45426d7027", size = 12222121, upload-time = "2025-05-26T10:24:58.746Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "25.0"
 source = { registry = "https://pypi.org/simple" }
@@ -922,6 +946,9 @@ dependencies = [
 cpu = [
     { name = "onnx-asr", extra = ["cpu"] },
 ]
+cpu-openvino = [
+    { name = "onnxruntime-openvino" },
+]
 gpu = [
     { name = "onnxruntime-gpu", extra = ["cuda", "cudnn"] },
 ]
@@ -944,11 +971,12 @@ requires-dist = [
     { name = "onnx-asr", extras = ["hub"], specifier = ">=0.6" },
     { name = "onnxruntime-gpu", extras = ["cuda", "cudnn"], marker = "extra == 'gpu'", specifier = ">=1.22.0" },
     { name = "onnxruntime-gpu", extras = ["cuda", "cudnn"], marker = "extra == 'gpu-trt'", specifier = "~=1.22.0" },
+    { name = "onnxruntime-openvino", marker = "extra == 'cpu-openvino'", specifier = ">=1.22.0" },
     { name = "soundfile", specifier = ">=0.12.1" },
     { name = "tensorrt-cu12-libs", marker = "extra == 'gpu-trt'", specifier = "==10.9.*" },
     { name = "wyoming", specifier = ">=1.5.3" },
 ]
-provides-extras = ["cpu", "gpu", "gpu-trt"]
+provides-extras = ["cpu", "cpu-openvino", "gpu", "gpu-trt"]
 
 [package.metadata.requires-dev]
 dev = [
