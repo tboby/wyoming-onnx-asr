@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "wyoming>=1.5.3",
-    "onnx-asr[hub]>=0.6",
+    "onnx-asr[hub]==0.7.0",
     "soundfile>=0.12.1",
 ]
 

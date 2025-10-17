@@ -159,7 +159,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -518,15 +518,15 @@ wheels = [
 
 [[package]]
 name = "onnx-asr"
-version = "0.6.1"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/12/86/5497a9aee4fbc343293d9da3dae5dcb33846be42b88b8c93c91583584607/onnx_asr-0.6.1.tar.gz", hash = "sha256:5e3e99f3dbc2fa6c0d7fe6a573c3757c2f822f8b387fa5ecd3cc60ac0b521ffa", size = 125697, upload-time = "2025-05-24T16:19:17.01Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3d/27/5374180a246bab5fdc4de4ebeea12d8a29b89e1d3374a1945d37c155f1ac/onnx_asr-0.7.0.tar.gz", hash = "sha256:89646c1f88a4d8c09d6319af13dc6f2c3f85906d1083b027a90b23b4d3953142", size = 121582, upload-time = "2025-08-16T22:17:07.72Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f5/f1/9041e75dbc60d96a8730bee8a9316eccb6adb227bb008411fb770fef0626/onnx_asr-0.6.1-py3-none-any.whl", hash = "sha256:d00926b46cef606f1d70cc95b93f02192384eef79b12398f05836beae6c444f9", size = 120333, upload-time = "2025-05-24T16:19:15.54Z" },
+    { url = "https://files.pythonhosted.org/packages/09/9a/15531c21b54a2e05066443830917e7f77e5237e4ac8772b50d2d1115c25b/onnx_asr-0.7.0-py3-none-any.whl", hash = "sha256:a9cbbdc3529d373b54880c5e960c10e22ccc7d8acce724e596803b63b34a475d", size = 119078, upload-time = "2025-08-16T22:17:06.53Z" },
 ]
 
 [package.optional-dependencies]
@@ -941,7 +941,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "onnx-asr", extras = ["cpu"], marker = "extra == 'cpu'", specifier = ">=0.6" },
-    { name = "onnx-asr", extras = ["hub"], specifier = ">=0.6" },
+    { name = "onnx-asr", extras = ["hub"], specifier = "==0.7.0" },
     { name = "onnxruntime-gpu", extras = ["cuda", "cudnn"], marker = "extra == 'gpu'", specifier = ">=1.22.0" },
     { name = "onnxruntime-gpu", extras = ["cuda", "cudnn"], marker = "extra == 'gpu-trt'", specifier = "~=1.22.0" },
     { name = "soundfile", specifier = ">=0.12.1" },

@@ -64,7 +64,7 @@ async def dual_model_server(request):
         "--model-en",
         "nemo-parakeet-tdt-0.6b-v2",  # English model
         "--model-multilingual",
-        "whisper-base",  # Use same model for testing (in real scenario would be different)
+        "nemo-parakeet-tdt-0.6b-v3",  # Use same model for testing (in real scenario would be different)
     ]
     quantization = request.param
     if quantization:
@@ -118,6 +118,7 @@ async def dual_model_client(dual_model_server):
             # Verify both models are available
             model_names = [m.name for m in asr.models]
             assert "nemo-parakeet-tdt-0.6b-v2" in model_names
+            assert "nemo-parakeet-tdt-0.6b-v3" in model_names
             break
 
         yield client
@@ -204,6 +205,7 @@ async def test_dual_model_server_info(dual_model_client):
 
         # Verify model details
         model_names = [m.name for m in asr.models]
+        assert "nemo-parakeet-tdt-0.6b-v3" in model_names
         assert "nemo-parakeet-tdt-0.6b-v2" in model_names
 
         # Check that we have both English and multilingual models
