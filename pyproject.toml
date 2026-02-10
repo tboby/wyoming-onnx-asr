@@ -60,3 +60,4 @@ disallow_untyped_defs = true
 cpu = ["onnx-asr[cpu]>=0.6"]
 gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.22.0"]
 gpu-trt = ["onnxruntime-gpu[cuda,cudnn]~=1.22.0", "tensorrt-cu12-libs==10.9.*"]
+openvino = ["onnxruntime-openvino>=1.23.0", "openvino>=2025.4"]

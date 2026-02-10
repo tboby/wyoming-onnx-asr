@@ -1,0 +1,16 @@
+services:
+  onnx:
+    build:
+      context: .
+      dockerfile: openvino.Dockerfile
+    command: [
+       "--model-en", "nemo-parakeet-tdt-0.6b-v2",
+      "--uri", "tcp://0.0.0.0:10300"
+    ]
+    volumes:
+      - ./local:/data
+    restart: unless-stopped
+    ports:
+      - "10300:10300"
+    devices:
+      - /dev/dri:/dev/dri

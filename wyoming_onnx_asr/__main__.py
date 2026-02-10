@@ -43,8 +43,14 @@ async def main() -> None:
     parser.add_argument(
         "--device",
         default="cpu",
-        choices=["cpu", "gpu", "gpu-trt"],
+        choices=["cpu", "gpu", "gpu-trt", "openvino"],
         help="Device to use for inference (default: cpu)",
+    )
+    parser.add_argument(
+        "--openvino-device",
+        default="CPU",  # CPU is faster than GPU for ONNX ASR
+        help="OpenVINO device type when --device=openvino. "
+        "Options: CPU, GPU, AUTO (default: CPU)",
     )
 
     parser.add_argument("--debug", action="store_true", help="Log DEBUG messages")
@@ -142,6 +148,13 @@ async def main() -> None:
         session_options.graph_optimization_level = (
             onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
         )
+    if args.device == "openvino":
+        openvino_provider_options = {
+            "device_type": args.openvino_device,
+        }
+        providers = [
+            ("OpenVINOExecutionProvider", openvino_provider_options)
+        ] + providers
 
     # Load multiple models and build container
     models = {}
@@ -150,6 +163,20 @@ async def main() -> None:
         "sess_options": session_options,
         "quantization": args.quantization,
     }
+
+    # OpenVINO can't compile the preprocessor model (dynamic rank tensors),
+    # so force the preprocessor and resampler to use CPU while the main
+    # encoder/decoder uses OpenVINO.
+    if args.device == "openvino":
+        cpu_config = {
+            "providers": ["CPUExecutionProvider"],
+            "sess_options": session_options,
+        }
+        base_load_kwargs["preprocessor_config"] = {
+            **cpu_config,
+            "max_concurrent_workers": 1,
+        }
+        base_load_kwargs["resampler_config"] = cpu_config
 
     # For each non-None model name: Call onnx_asr.load_model(...) exactly as before
 
