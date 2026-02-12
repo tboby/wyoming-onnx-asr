@@ -149,6 +149,7 @@ async def main() -> None:
         "providers": providers,
         "sess_options": session_options,
         "quantization": args.quantization,
+        "preprocessor_config": { "providers": ["CPUExecutionProvider"] }
     }
 
     # For each non-None model name: Call onnx_asr.load_model(...) exactly as before
