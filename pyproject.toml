@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "wyoming>=1.5.3",
-    "onnx-asr[hub]==0.10.1",
+    "onnx-asr[hub]==0.10.2",
 
     "soundfile>=0.12.1",
 ]
@@ -58,5 +58,5 @@ disallow_untyped_defs = true
 
 [project.optional-dependencies]
 cpu = ["onnx-asr[cpu]>=0.6"]
-gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.22.0"]
-gpu-trt = ["onnxruntime-gpu[cuda,cudnn]~=1.22.0", "tensorrt-cu12-libs==10.9.*"]
+gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.24.1"]
+gpu-trt = ["onnxruntime-gpu[cuda,cudnn]>=1.24.1", "tensorrt-cu12-libs==10.15.*"]
