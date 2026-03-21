@@ -25,8 +25,37 @@ def _resolve_model_path(model_dir: str | None, model_name: str) -> str | None:
     return os.path.join(model_dir, safe_name)
 
 
-async def main() -> None:
+def _advertised_language_codes() -> list[str]:
+    advertised = set(_LANGUAGE_CODES)
 
+    # Home Assistant commonly uses locale-style tags (for example: es-ES),
+    # while ONNX ASR uses language codes (for example: es).
+    for code in _LANGUAGE_CODES:
+        if len(code) == 2 and code.isalpha():
+            advertised.add(f"{code}-{code.upper()}")
+
+    # Common locale variants used by voice assistants.
+    advertised.update(
+        {
+            "en-US",
+            "en-GB",
+            "en-AU",
+            "es-MX",
+            "es-US",
+            "fr-CA",
+            "pt-BR",
+            "pt-PT",
+            "zh-CN",
+            "zh-TW",
+            "zh-HK",
+            "yue-HK",
+        }
+    )
+
+    return sorted(advertised)
+
+
+async def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-en", help="English model name")
@@ -70,7 +99,6 @@ async def main() -> None:
     multi_model_name = args.model_multilingual
     model_dir = args.model_dir
 
-
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO, format=args.log_format
     )
@@ -106,8 +134,7 @@ async def main() -> None:
                     url="https://github.com/istupakov/onnx-asr",
                 ),
                 installed=True,
-                languages=list(_LANGUAGE_CODES),
-
+                languages=_advertised_language_codes(),
                 version="0.1",
             )
         )
@@ -220,7 +247,7 @@ async def main() -> None:
 
 
 # -----------------------------------------------------------------------------
-_LANGUAGE_CODES = (
+_LANGUAGE_CODES: tuple[str, ...] = (
     "af",
     "am",
     "ar",
